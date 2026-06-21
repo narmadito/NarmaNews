@@ -1,0 +1,102 @@
+<% if (typeof hideTicker === 'undefined' || !hideTicker) { %>
+
+    <div class="premium-top-ticker">
+        <div class="container custom-nav-container d-flex align-items-center">
+            <div class="ticker-badge-clean">
+                <span class="pulse-ring"></span>LIVE
+            </div>
+            <div class="ticker-content-clean">
+                <marquee scrollamount="5" onmouseover="this.stop();" onmouseout="this.start();">
+                    <% if (typeof tickerArticles !== 'undefined' && tickerArticles && tickerArticles.length > 0) { %>
+                        <% tickerArticles.forEach(item => { %>
+                            <span class="ticker-text-node">
+                                <span class="ticker-dot">•</span> <%= item.title %>
+                            </span>
+                        <% }) %>
+                    <% } else if (typeof article !== 'undefined' && article) { %>
+                        <span class="ticker-text-node">
+                            <span class="ticker-dot">•</span> Now Reading: <%= article.title %>
+                        </span>
+                    <% } else { %>
+                        <span class="ticker-text-node">
+                            <span class="ticker-dot">•</span> Welcome to NarmaNews — Stay updated with real-time independent journalism.
+                        </span>
+                    <% } %>
+                </marquee>
+            </div>
+        </div>
+    </div>
+
+<% } %>
+
+
+<nav class="navbar navbar-expand-custom premium-navbar sticky-top">
+    <div class="container custom-nav-container">
+
+        <a class="navbar-brand-premium custom-brand-spacing" href="/">
+            Narma<span>News</span>
+        </a>
+
+        <button
+                class="navbar-toggler custom-toggler"
+                type="button"
+                data-bs-toggle="collapse"
+                data-bs-target="#navbarNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="navbarNav">
+
+            <ul class="navbar-nav me-auto premium-nav-links custom-nav-links">
+                <li class="nav-item"><a class="nav-link-modern" href="/">Home</a></li>
+                <li class="nav-item"><a class="nav-link-modern" href="/?category=technology">Technology</a></li>
+                <li class="nav-item"><a class="nav-link-modern" href="/?category=business">Business</a></li>
+                <li class="nav-item"><a class="nav-link-modern" href="/?category=sports">Sports</a></li>
+                <li class="nav-item"><a class="nav-link-modern" href="/?category=science">Science</a></li>
+                <li class="nav-item"><a class="nav-link-modern" href="/?category=health">Health</a></li>
+                <li class="nav-item"><a class="nav-link-modern" href="/?category=entertainment">Entertainment</a></li>
+            </ul>
+
+            <div class="nav-right-actions">
+
+                <form class="d-flex premium-search-form m-0 w-100" action="/" method="GET">
+                    <div class="search-input-wrapper flex-grow-1">
+                        <i class="fa-solid fa-magnifying-glass search-icon"></i>
+                        <input
+                                class="form-control modern-search-input"
+                                type="search"
+                                name="search"
+                                placeholder="Search stories...">
+                    </div>
+                    <button class="btn-modern-solid" type="submit">Search</button>
+                </form>
+
+                <div class="auth-divider"></div>
+
+                <div class="premium-auth-actions">
+                    <% if (typeof user !== 'undefined' && user) { %>
+
+                        <div class="dropdown custom-user-dropdown-wrapper">
+                            <a class="btn btn-outline-dark dropdown-toggle modern-user-dropdown custom-user-btn" href="#" role="button" id="userMenu" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="fa-regular fa-user me-2"></i><%= user.username %>
+                            </a>
+                            <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0 custom-dropdown-menu position-absolute" aria-labelledby="userMenu">
+                                <li><a class="dropdown-item py-2" href="/auth/profile"><i class="fa-solid fa-address-card text-muted me-2"></i>My Profile</a></li>
+                                <li><hr class="dropdown-divider my-1"></li>
+                                <li><a class="dropdown-item py-2 text-danger" href="/auth/logout"><i class="fa-solid fa-arrow-right-from-bracket me-2"></i>Logout</a></li>
+                            </ul>
+                        </div>
+
+                    <% } else { %>
+
+                        <a href="/auth/login" class="btn-modern-ghost">Login</a>
+                        <a href="/auth/register" class="btn-modern-solid">Sign Up</a>
+
+                    <% } %>
+                </div>
+
+            </div>
+
+        </div>
+    </div>
+</nav>

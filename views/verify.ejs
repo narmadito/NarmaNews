@@ -1,0 +1,58 @@
+<%- include('partials/header', { title: 'Verify Email | NarmaNews' }) %>
+<%- include('partials/navbar') %>
+
+<div class="auth-container">
+    <div class="auth-card">
+
+        <div class="brand">
+            Narma<span>News</span>
+        </div>
+
+        <div class="hint">
+            We sent a 6-digit code to your email
+        </div>
+
+        <% if(typeof error !== 'undefined' && error){ %>
+            <div class="error-box">
+                <i class="fa-solid fa-circle-xmark error-icon"></i>
+                <div><%= error %></div>
+            </div>
+        <% } %>
+
+        <% if(typeof success !== 'undefined' && success){ %>
+            <div class="error-box" style="background-color: #d1e7dd; color: #0f5132; border: 1px solid #badbcc;">
+                <i class="fa-solid fa-circle-check error-icon" style="color: #0f5132;"></i>
+                <div><%= success %></div>
+            </div>
+        <% } %>
+
+        <form method="POST" action="/auth/verify">
+            <input type="hidden" name="email" value="<%= email %>">
+
+            <div class="mb-4">
+                <input
+                        type="text"
+                        name="code"
+                        class="form-control code-input"
+                        placeholder="------"
+                        maxlength="6"
+                        required>
+            </div>
+
+            <button class="btn btn-primary w-100 btn-verify">
+                <i class="fa-solid fa-shield-check me-2"></i>
+                Verify Account
+            </button>
+        </form>
+
+        <form method="POST" action="/auth/resend" style="margin-top: 15px; text-align: center;">
+            <input type="hidden" name="email" value="<%= email %>">
+            <button type="submit" style="background: none; border: none; color: #0d6efd; text-decoration: underline; cursor: pointer; font-size: 14px;">
+                Code expired? Resend code
+            </button>
+        </form>
+
+    </div>
+</div>
+
+<%- include('partials/footer') %>

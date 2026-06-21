@@ -1,0 +1,29 @@
+<%- include('partials/header', { title: 'Error | NarmaNews' }) %>
+
+
+<div class="error-page-container">
+    <div class="error-wrapper">
+
+        <div class="error-status-code">
+            <%= error.status || '500' %>
+        </div>
+
+        <h1 class="error-message-title">
+            <%= message || 'Oops! Something went wrong' %>
+        </h1>
+
+        <p class="error-description">
+            We encountered an unexpected issue while processing your request. The engineering team has been notified. Please try returning to the main feed.
+        </p>
+
+        <div class="action-button-group">
+            <a href="/" class="btn-premium btn-primary-dark">
+                <i class="fa-solid fa-house"></i> Go to Homepage
+            </a>
+            <button onclick="window.location.reload();" class="btn-premium btn-secondary-outline">
+                <i class="fa-solid fa-rotate-right"></i> Refresh Page
+            </button>
+        </div>
+
+    </div>
+</div>

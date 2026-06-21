@@ -1,0 +1,202 @@
+.ai-header-wrapper {
+    position: relative;
+}
+
+.ai-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: linear-gradient(135deg, rgba(0, 102, 255, 0.08), rgba(168, 85, 247, 0.08));
+    border: 1px solid rgba(0, 102, 255, 0.15);
+    color: var(--primary-color);
+    font-size: 0.8rem;
+    font-weight: 700;
+    padding: 6px 16px;
+    border-radius: 30px;
+    letter-spacing: 0.5px;
+}
+
+.ai-page-title {
+    font-weight: 800;
+    font-size: 2.2rem;
+    letter-spacing: -0.5px;
+    color: var(--dark-color);
+}
+
+.ai-article-subject {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #475569;
+}
+
+.ai-loading-state {
+    background: #ffffff;
+    border: 1px solid rgba(15, 23, 42, 0.05);
+    border-radius: 24px;
+    padding: 60px 40px;
+    box-shadow: 0 20px 40px -15px rgba(15, 23, 42, 0.03);
+}
+
+.ai-orb-wrapper {
+    position: relative;
+    width: 80px;
+    height: 80px;
+    margin: 0 auto 25px auto;
+}
+
+.ai-pulse-orb {
+    position: absolute;
+    top: 15px; left: 15px;
+    width: 50px; height: 50px;
+    background: linear-gradient(135deg, #0066ff, #a855f7);
+    border-radius: 50%;
+    box-shadow: 0 0 30px rgba(0, 102, 255, 0.4);
+    animation: orbPulse 2s ease-in-out infinite alternate;
+}
+
+.ai-pulse-ring {
+    position: absolute;
+    width: 80px; height: 80px;
+    border: 2px solid rgba(0, 102, 255, 0.2);
+    border-radius: 50%;
+    animation: ringScale 2s cubic-bezier(0.25, 1, 0.5, 1) infinite;
+}
+
+@keyframes orbPulse {
+    0% { transform: scale(0.9); opacity: 0.8; box-shadow: 0 0 20px rgba(0, 102, 255, 0.3); }
+    100% { transform: scale(1.1); opacity: 1; box-shadow: 0 0 40px rgba(168, 85, 247, 0.6); }
+}
+
+@keyframes ringScale {
+    0% { transform: scale(0.6); opacity: 1; }
+    100% { transform: scale(1.3); opacity: 0; }
+}
+
+.ai-loading-text {
+    font-weight: 700;
+    color: #334155;
+    font-size: 1rem;
+}
+
+.ai-skeleton-loader {
+    max-width: 400px;
+    margin: 0 auto;
+}
+
+.skeleton-line {
+    height: 8px;
+    background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%);
+    background-size: 200% 100%;
+    animation: shimmerFlow 1.5s infinite linear;
+    border-radius: 4px;
+    margin-bottom: 12px;
+}
+
+.skeleton-line.short {
+    width: 60%;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+@keyframes shimmerFlow {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+}
+
+.ai-response-card {
+    background: #ffffff;
+    border: 1px solid rgba(15, 23, 42, 0.05);
+    border-radius: 24px;
+    padding: 35px;
+    box-shadow: 0 30px 60px -15px rgba(15, 23, 42, 0.04);
+    position: relative;
+    overflow: hidden;
+}
+
+.ai-response-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; width: 4px; height: 100%;
+    background: linear-gradient(180deg, #0066ff, #a855f7);
+}
+
+.ai-card-top {
+    border-bottom: 1px solid #f1f5f9;
+    padding-bottom: 18px;
+    margin-bottom: 25px;
+}
+
+.ai-status-dot {
+    width: 8px; height: 8px;
+    background: #10b981;
+    border-radius: 50%;
+    display: inline-block;
+    box-shadow: 0 0 10px rgba(16, 185, 129, 0.6);
+}
+
+.ai-status-label {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: #10b981;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.ai-card-icon {
+    font-size: 1.2rem;
+    color: #cbd5e1;
+}
+
+.ai-formatted-text {
+    font-size: 1.1rem;
+    line-height: 1.75;
+    color: #334155;
+    font-weight: 500;
+    white-space: pre-wrap;
+}
+
+.ai-typing-cursor {
+    display: inline-block;
+    width: 2px;
+    height: 1.15rem;
+    background-color: var(--primary-color);
+    margin-left: 3px;
+    vertical-align: -2px;
+    animation: cursorBlink 0.8s infinite;
+}
+
+@keyframes cursorBlink {
+    0%, 100% { opacity: 0; }
+    50% { opacity: 1; }
+}
+
+.ai-typing-cursor.fade-out {
+    opacity: 0;
+    transition: opacity 1s ease;
+}
+
+.ai-error-card {
+    background: #ffffff;
+    border: 1px solid rgba(239, 68, 68, 0.1);
+    border-radius: 24px;
+    padding: 50px 30px;
+    box-shadow: 0 20px 40px -15px rgba(239, 68, 68, 0.03);
+}
+
+.error-icon-wrap {
+    width: 60px; height: 60px;
+    background: rgba(239, 68, 68, 0.08);
+    color: #ef4444;
+    font-size: 1.5rem;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto;
+}
+
+.ai-error-card h4 {
+    font-weight: 800;
+    color: #1e293b;
+    margin-bottom: 10px;
+}

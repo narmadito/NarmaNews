@@ -1,0 +1,120 @@
+<%- include('partials/header', { title: 'My Profile | NarmaNews' }) %>
+<%- include('partials/navbar') %>
+
+<div class="profile-header">
+    <div class="container">
+        <h1>My Account</h1>
+    </div>
+</div>
+
+<main class="profile-container">
+    <div class="profile-card">
+
+        <% if(typeof error !== 'undefined' && error) { %>
+            <div class="error-msg" id="errorMessage"><%= error %></div>
+        <% } %>
+
+        <div class="avatar-wrap" onclick="document.getElementById('fileInput').click()">
+            <img src="<%= user.profileImage %>" alt="Profile">
+            <div class="upload-overlay">CHANGE</div>
+        </div>
+
+        <form action="/auth/profile/upload" method="POST" enctype="multipart/form-data">
+            <input type="file" name="avatar" id="fileInput" accept="image/*" style="display:none" onchange="this.form.submit()">
+        </form>
+
+        <h2 class="text-center"><%= user.username %></h2>
+        <p class="text-center text-muted mb-4"><%= user.email %></p>
+
+        <div class="info-box">
+            <div>
+                <div class="label">Username</div>
+                <div class="value"><%= user.username %></div>
+            </div>
+            <button class="btn-edit" data-bs-toggle="modal" data-bs-target="#editNameModal">Edit</button>
+        </div>
+
+        <div class="info-box">
+            <div>
+                <div class="label">Email Address</div>
+                <div class="value"><%= user.email %></div>
+            </div>
+        </div>
+
+        <a href="/auth/favorites" class="info-box mb-4" style="text-decoration: none; display: flex; justify-content: space-between; align-items: center; transition: all 0.2s ease;">
+            <div>
+                <div class="label">Favorites</div>
+                <div class="value" style="display: flex; align-items: center; gap: 6px;">
+                    <i class="fa-solid fa-star" style="color: #ffc107;"></i> Saved Articles
+                </div>
+            </div>
+            <div style="display: flex; align-items: center; gap: 8px;">
+                <span class="badge rounded-pill" style="background: #f1f5f9; color: #475569; border: 1px solid #e2e8f0; font-size: 0.85rem;"><%= user.favorites ? user.favorites.length : 0 %></span>
+                <i class="fa-solid fa-chevron-right text-muted" style="font-size: 0.85rem;"></i>
+            </div>
+        </a>
+
+        <a href="/auth/logout" class="btn-logout">
+            <i class="fa-solid fa-right-from-bracket me-2"></i> Sign Out
+        </a>
+
+        <button type="button" class="btn-delete-account" data-bs-toggle="modal" data-bs-target="#deleteAccountModal">
+            <i class="fa-solid fa-trash-can me-2"></i> Delete Account
+        </button>
+    </div>
+</main>
+
+<div class="modal fade" id="editNameModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="border-radius: 28px; border: none; padding: 25px; box-shadow: 0 20px 40px rgba(0,0,0,0.1);">
+            <form action="/auth/profile/update" method="POST">
+                <h4 class="mb-1" style="font-weight: 800; color: #0f172a;">Update Username</h4>
+                <p style="font-size: 0.9rem; color: #64748b; margin-bottom: 5px;">Choose a unique name for your account</p>
+
+                <div class="custom-input-group">
+                    <input type="text" name="username" class="beautiful-input" value="<%= user.username %>" required autocomplete="off">
+                </div>
+
+                <button type="submit" class="btn btn-primary w-100 mt-4 btn-save-custom">Save Changes</button>
+            </form>
+        </div>
+    </div>
+</div>
+<div class="modal fade" id="deleteAccountModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="border-radius: 28px; padding: 25px; border: none;">
+            <h4 style="font-weight: 800; color: #ef4444;">Delete Account?</h4>
+            <p style="color: #64748b; font-size: 0.95rem;">
+                Are you sure? This action is permanent. Type <strong><%= user.username %></strong> to confirm.
+            </p>
+
+            <form action="/auth/profile/delete" method="POST" id="deleteForm">
+                <input type="text" name="confirmUsername" class="beautiful-input" placeholder="Type your username here" required autocomplete="off" oninput="validateDelete(this, '<%= user.username %>')">
+                <div class="d-flex gap-2 mt-3">
+                    <button type="button" class="btn btn-secondary flex-grow-1" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" id="deleteBtn" class="btn btn-danger flex-grow-1" disabled>Yes, Delete Everything</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    function validateDelete(input, username) {
+        const btn = document.getElementById('deleteBtn');
+        btn.disabled = input.value !== username;
+    }
+</script>
+<script>
+    const errBlock = document.getElementById('errorMessage');
+    if (errBlock) {
+        setTimeout(() => {
+            errBlock.style.opacity = '0';
+            setTimeout(() => {
+                errBlock.style.display = 'none';
+            }, 500);
+        }, 5000);
+    }
+</script>
+
+<%- include('partials/footer') %>

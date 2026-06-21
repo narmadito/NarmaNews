@@ -1,0 +1,58 @@
+<%- include('partials/header', { title: 'Login | NarmaNews' }) %>
+<link rel="stylesheet" href="/stylesheets/loginn.css">
+<%- include('partials/navbar') %>
+
+<div class="auth-container">
+    <div class="auth-card">
+
+        <div class="brand">
+            Narma<span>News</span>
+        </div>
+
+        <div class="subtitle">
+            Welcome back
+        </div>
+
+        <% if(typeof error !== 'undefined' && error){ %>
+            <div class="error-box">
+                <i class="fa-solid fa-circle-xmark error-icon"></i>
+                <div><%= error %></div>
+            </div>
+        <% } %>
+
+        <form action="/auth/login" method="POST">
+
+            <div class="mb-3">
+                <label class="form-label">Email</label>
+                <input
+                        type="email"
+                        name="email"
+                        class="form-control"
+                        required>
+            </div>
+
+            <div class="mb-4">
+                <label class="form-label">Password</label>
+                <input
+                        type="password"
+                        name="password"
+                        class="form-control"
+                        required>
+            </div>
+
+            <button class="btn btn-primary w-100 btn-login">
+                <i class="fa-solid fa-right-to-bracket me-2"></i>
+                Login
+            </button>
+
+        </form>
+
+        <div class="register-link">
+            Don't have an account?
+            <a href="/auth/register">Create one</a>
+        </div>
+
+    </div>
+</div>
+
+<%- include('partials/footer') %>

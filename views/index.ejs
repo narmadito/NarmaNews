@@ -1,0 +1,227 @@
+<%- include('partials/header', { title: 'NarmaNews' }) %>
+<%- include('partials/navbar') %>
+
+<div class="container custom-main-layout mt-5">
+
+    <% if (currentPage === 1 && articles.length > 0) { %>
+        <div class="magazine-grid mb-5">
+
+            <div class="grid-main-hero">
+                <div class="premium-hero-card">
+                    <img
+                            src="<%= articles[0].urlToImage || 'https://placehold.co/1200x800?text=NarmaNews' %>"
+                            alt="hero"
+                            onerror="this.onerror=null; this.src='https://placehold.co/1200x800?text=NarmaNews';"
+                    >
+                    <div class="hero-gradient-cover"></div>
+                    <div class="hero-text-block">
+                        <span class="category-tag text-uppercase">Exclusive Cover</span>
+                        <h1 class="main-title"><%= articles[0].title %></h1>
+                        <p class="main-desc d-none d-md-block"><%= articles[0].description || '' %></p>
+                        <div class="hero-footer mt-3">
+                            <a href="/news/<%= articles[0]._id %>" class="btn btn-premium-action">
+                                Read Full Story <i class="fa-solid fa-arrow-trend-up ms-2"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid-side-trending d-none d-lg-flex">
+                <div class="trending-box-wrapper">
+                    <h4 class="sidebar-title">
+                        <i class="fa-solid fa-fire text-danger me-2"></i>Trending Stories
+                    </h4>
+
+                    <div class="trending-list">
+                        <% articles.slice(1, 4).forEach((article, index) => { %>
+                            <a href="/news/<%= article._id %>" class="trending-list-item">
+                                <span class="trend-number">0<%= index + 1 %></span>
+
+                                <div class="trend-info">
+                                    <h6><%= article.title %></h6>
+
+                                    <% if(article.publishedAt){ %>
+                                        <small
+                                                class="article-time text-muted"
+                                                data-date="<%= article.publishedAt %>">
+                                            Loading...
+                                        </small>
+                                    <% } %>
+                                </div>
+                            </a>
+                        <% }) %>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    <% } %>
+
+    <section id="news-feed-section" class="pt-4">
+
+        <div class="feed-header d-flex justify-content-between align-items-center mb-4">
+            <h2 class="modern-section-title">Latest Headlines</h2>
+
+            <div class="feed-filter-info">
+                <span class="badge bg-light text-dark border px-3 py-2 rounded-pill font-weight-bold">
+                    <i class="fa-solid fa-grid-2 text-primary me-2"></i>
+                    <%= totalArticles %> Available
+                </span>
+            </div>
+        </div>
+
+        <div class="row g-4">
+
+            <% if (articles.length === 0) { %>
+                <div class="col-12">
+                    <div class="empty-search-state">
+                        <div class="empty-search-icon mb-4">
+                            <i class="fa-solid fa-magnifying-glass"></i>
+                        </div>
+                        <h3 class="mb-3">No Results Found</h3>
+                        <p class="mb-4">We couldn't find any articles matching your search query. Try checking your spelling or using different keywords.</p>
+                        <a href="/" class="btn-return-home">
+                            <i class="fa-solid fa-arrow-left me-2"></i> Back to Home
+                        </a>
+                    </div>
+                </div>
+            <% } else { %>
+                <%
+                    let displayArticles = currentPage === 1 ? articles.slice(1) : articles;
+                displayArticles.forEach(article => {
+                %>
+
+                    <div class="col-xl-4 col-lg-4 col-md-6 col-sm-12">
+
+                        <div class="premium-news-card">
+
+                            <div class="card-media-holder">
+                                <img
+                                        src="<%= article.urlToImage || 'https://placehold.co/600x400?text=NarmaNews' %>"
+                                        alt="news"
+                                        onerror="this.onerror=null; this.src='https://placehold.co/600x400?text=NarmaNews';"
+                                >
+
+                                <span class="card-category-badge">
+                                    News
+                                </span>
+                            </div>
+
+                            <div class="card-content-holder">
+
+                                <div class="card-meta-top mb-2">
+                                    <% if(article.publishedAt){ %>
+                                        <span
+                                                class="article-time"
+                                                data-date="<%= article.publishedAt %>">
+
+                                            <i class="fa-solid fa-circle-notch fa-spin"></i>
+
+                                        </span>
+                                    <% } %>
+                                </div>
+
+                                <h5 class="card-headline">
+                                    <a href="/news/<%= article._id %>">
+                                        <%= article.title %>
+                                    </a>
+                                </h5>
+
+                                <p class="card-excerpt">
+                                    <%= article.description || 'No summary available for this story at the moment.' %>
+                                </p>
+
+                                <div class="card-footer-action">
+                                    <a href="/news/<%= article._id %>" class="read-more-link">
+                                        Explore
+                                        <i class="fa-solid fa-chevron-right ms-1"></i>
+                                    </a>
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                <% }) %>
+            <% } %>
+
+        </div>
+
+        <% if (totalPages > 1) { %>
+
+            <div class="pagination-wrapper mt-5">
+
+                <nav aria-label="Page navigation">
+
+                    <ul class="pagination premium-pagination-nodes justify-content-center">
+
+                        <li class="page-node <%= currentPage <= 1 ? 'disabled' : '' %>">
+                            <a href="<%= currentPage <= 1 ? '#' : '/?page=' + (currentPage - 1) + (category ? '&category=' + category : '') + (search ? '&search=' + search : '') %>" class="node-link">
+                                <i class="fa-solid fa-arrow-left-long me-2"></i> Previous
+                            </a>
+                        </li>
+
+                        <% paginationRange.forEach(i => { %>
+                            <% if (i === '...') { %>
+                                <li class="page-node interactive-dots">
+                                    <input
+                                            type="number"
+                                            class="dots-input"
+                                            value="..."
+                                            placeholder="..."
+                                            min="1"
+                                            max="<%= totalPages %>"
+                                            title="ჩაწერე გვერდი და დააჭირე Enter-ს"
+                                            onfocus="this.value=''"
+                                            onblur="if(this.value=='') this.value='...'"
+                                            onkeydown="if(event.key === 'Enter' && this.value) { window.location.href = '/?page=' + this.value + '<%= category ? `&category=${category}` : "" %><%= search ? `&search=${search}` : "" %>'; }"
+                                    >
+                                </li>
+                            <% } else { %>
+                                <li class="page-node <%= currentPage === i ? 'active' : '' %>">
+                                    <a href="/?page=<%= i %><%= category ? '&category=' + category : '' %><%= search ? '&search=' + search : '' %>" class="node-link">
+                                        <%= i %>
+                                    </a>
+                                </li>
+                            <% } %>
+                        <% }) %>
+
+                        <li class="page-node <%= currentPage >= totalPages ? 'disabled' : '' %>">
+                            <a href="<%= currentPage >= totalPages ? '#' : '/?page=' + (currentPage + 1) + (category ? '&category=' + category : '') + (search ? '&search=' + search : '') %>" class="node-link">
+                                Next <i class="fa-solid fa-arrow-right-long ms-2"></i>
+                            </a>
+                        </li>
+
+                    </ul>
+
+                </nav>
+
+            </div>
+
+        <% } %>
+
+    </section>
+
+</div>
+
+<script>
+    window.addEventListener('DOMContentLoaded', () => {
+        document.querySelectorAll('.article-time').forEach(el => {
+            const date = new Date(el.dataset.date);
+
+            el.innerHTML =
+                `<i class="fa-regular fa-clock me-1 text-primary"></i> ` +
+                date.toLocaleString(undefined, {
+                    month: 'short',
+                    day: 'numeric',
+                    hour: 'numeric',
+                    minute: '2-digit'
+                });
+        });
+    });
+</script>
+
+<%- include('partials/footer') %>

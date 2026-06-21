@@ -1,0 +1,86 @@
+body {
+    background: #ffffff !important;
+}
+
+.premium-top-ticker {
+    display: none !important;
+}
+
+.auth-container {
+    min-height: calc(100vh - 200px);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 40px 20px;
+}
+
+.auth-card {
+    width: 100%;
+    max-width: 500px;
+    background: #ffffff;
+    border-radius: 25px;
+    padding: 40px;
+    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.08), 0 1px 3px rgba(0, 0, 0, 0.02);
+    border: 1px solid #f1f5f9;
+}
+
+.auth-card .brand {
+    font-size: 2rem;
+    font-weight: 800;
+    text-align: center;
+    margin-bottom: 10px;
+    color: #0f172a;
+}
+
+.auth-card .brand span {
+    color: #0d6efd;
+}
+
+.auth-card .subtitle {
+    text-align: center;
+    color: #6c757d;
+    margin-bottom: 30px;
+}
+
+.auth-card .form-control {
+    height: 55px;
+    border-radius: 14px;
+    border: 1px solid #dee2e6;
+}
+
+.auth-card .form-control:focus {
+    border-color: #0d6efd;
+    box-shadow: 0 0 0 4px rgba(13, 110, 253, 0.15);
+}
+
+.btn-register {
+    height: 55px;
+    border-radius: 14px;
+    font-weight: 700;
+}
+
+.login-link {
+    text-align: center;
+    margin-top: 20px;
+    color: #6c757d;
+}
+
+.error-box {
+    background: #fdf2f2;
+    border: 1px solid #fde2e2;
+    color: #9b1c1c;
+    padding: 16px 20px;
+    border-radius: 16px;
+    margin-bottom: 25px;
+    font-weight: 600;
+    font-size: 0.95rem;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    box-shadow: 0 4px 12px rgba(155, 28, 28, 0.03);
+}
+
+.error-icon {
+    font-size: 1.3rem;
+    color: #c81e1e;
+}

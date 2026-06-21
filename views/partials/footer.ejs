@@ -1,0 +1,75 @@
+<footer class="premium-footer">
+    <div class="footer-glow-divider"></div>
+    <div class="container custom-main-layout">
+
+        <div class="row g-5">
+
+            <div class="col-lg-4 col-md-12">
+                <div class="footer-brand-block">
+                    <a class="navbar-brand-premium footer-logo" href="/">
+                        Narma<span>News</span>
+                    </a>
+                    <p class="footer-brand-desc">
+                        Next-generation independent journalism powered by real-time updates and deep analytical insights. Stay informed with global perspectives.
+                    </p>
+                    <div class="platform-status-badge">
+                        <span class="status-dot"></span> Platform Status: Operational
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-2 col-md-4 col-6">
+                <h5 class="footer-section-title">Categories</h5>
+                <ul class="footer-links-list">
+                    <li><a href="/?category=technology">Technology</a></li>
+                    <li><a href="/?category=business">Business</a></li>
+                    <li><a href="/?category=sports">Sports</a></li>
+                    <li><a href="/?category=science">Science</a></li>
+                </ul>
+            </div>
+
+            <div class="col-lg-2 col-md-4 col-6">
+                <h5 class="footer-section-title">More Stories</h5>
+                <ul class="footer-links-list">
+                    <li><a href="/?category=health">Health</a></li>
+                    <li><a href="/?category=entertainment">Entertainment</a></li>
+                    <li><a href="/">Latest News</a></li>
+                </ul>
+            </div>
+
+            <div class="col-lg-4 col-md-4 col-12">
+                <h5 class="footer-section-title">Our Mission</h5>
+                <div class="footer-manifesto-box">
+                    <p class="footer-manifesto-text mb-0">
+                        NarmaNews is committed to delivering unfiltered, objective truth. We stand for transparent reporting, free speech, and high-quality digital journalism.
+                    </p>
+                </div>
+            </div>
+
+        </div>
+
+        <div class="footer-bottom-bar d-flex flex-wrap align-items-center justify-content-between">
+            <p class="footer-copyright mb-0">
+                &copy; <span id="footer-year"></span> NarmaNews. All rights reserved. Made for elite digital consumption.
+            </p>
+            <div class="footer-bottom-links d-flex align-items-center gap-4">
+                <a href="/about">About Us</a>
+                <a href="/privacy-policy">Privacy Policy</a>
+                <a href="/terms">Terms of Service</a>
+                <button class="btn-scroll-top" onclick="window.scrollTo({top: 0, behavior: 'smooth'})" aria-label="Scroll to top">
+                    <i class="fa-solid fa-arrow-up"></i>
+                </button>
+            </div>
+        </div>
+
+    </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+    document.getElementById('footer-year').textContent = new Date().getFullYear();
+</script>
+
+</body>
+</html>

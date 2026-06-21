@@ -1,0 +1,87 @@
+<%- include('partials/header', { title: 'AI Analysis - NarmaNews' }) %>
+<%- include('partials/navbar') %>
+
+<div class="container custom-main-layout mt-5 pt-3 mb-5 pb-5">
+    <div class="ai-header-wrapper mb-5">
+        <div class="ai-badge">
+            <i class="fa-solid fa-wand-magic-sparkles"></i> Narma AI Engine v2.5
+        </div>
+        <h1 class="ai-page-title mt-3">Advanced Intelligence Analysis</h1>
+        <h4 class="ai-article-subject mt-2"><i class="fa-regular fa-file-lines me-2 text-muted"></i><%= article.title %></h4>
+    </div>
+
+    <div id="analysis-container">
+        <div id="analysis" class="ai-loading-state text-center">
+            <div class="ai-orb-wrapper">
+                <div class="ai-pulse-orb"></div>
+                <div class="ai-pulse-ring"></div>
+            </div>
+            <h5 class="ai-loading-text">Synthesizing Neural Network Insights</h5>
+            <div class="ai-skeleton-loader mt-4">
+                <div class="skeleton-line"></div>
+                <div class="skeleton-line short"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    fetch('/api/analyze/<%= articleId %>')
+        .then(response => {
+            if (!response.ok) throw new Error('Analysis failed');
+            return response.json();
+        })
+        .then(data => {
+            const container = document.getElementById("analysis-container");
+            container.innerHTML = `
+                <div class="ai-response-card">
+                    <div class="ai-card-top d-flex align-items-center justify-content-between">
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="ai-status-dot"></span>
+                            <span class="ai-status-label">Analysis Complete</span>
+                        </div>
+                        <i class="fa-solid fa-robot ai-card-icon"></i>
+                    </div>
+                    <div class="ai-content-body">
+                        <div id="typewriter-target" class="ai-formatted-text"></div>
+                    </div>
+                </div>
+            `;
+
+            const textToType = data.analysis || "No analysis available.";
+            const target = document.getElementById("typewriter-target");
+            let index = 0;
+            const speed = 12;
+
+            const textSpan = document.createElement('span');
+            textSpan.className = 'ai-typed-stream';
+            const cursorSpan = document.createElement('span');
+            cursorSpan.className = 'ai-typing-cursor';
+
+            target.appendChild(textSpan);
+            target.appendChild(cursorSpan);
+
+            function streamText() {
+                if (index < textToType.length) {
+                    textSpan.textContent += textToType.charAt(index);
+                    index++;
+                    setTimeout(streamText, speed);
+                } else {
+                    cursorSpan.classList.add('fade-out');
+                    setTimeout(() => cursorSpan.remove(), 1000);
+                }
+            }
+            streamText();
+        })
+        .catch(() => {
+            document.getElementById("analysis-container").innerHTML = `
+                <div class="ai-error-card text-center py-5">
+                    <div class="error-icon-wrap mb-3"><i class="fa-solid fa-triangle-exclamation"></i></div>
+                    <h4>Quantum Link Interrupted</h4>
+                    <p class="text-muted">The AI could not process this article. Please refresh or try again later.</p>
+                </div>
+            `;
+        });
+</script>
+
+<%- include('partials/footer') %>

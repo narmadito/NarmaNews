@@ -1,0 +1,166 @@
+<%- include('partials/header', { title: article.title }) %>
+<%- include('partials/navbar') %>
+
+<div class="container premium-article-layout mt-5">
+    <div class="row">
+        <div class="col-xl-8 col-lg-9 mx-auto">
+
+            <div class="article-header-block mb-4">
+                <div class="d-flex align-items-center gap-3 mb-3">
+                    <span class="badge-premium-category">News</span>
+                    <span class="article-source-node">
+                        <i class="fa-solid fa-newspaper text-primary me-1"></i> <strong><%= article.source?.name || 'Unknown Source' %></strong>
+                    </span>
+                </div>
+
+                <h1 class="premium-article-title mb-4"><%= article.title %></h1>
+
+                <div class="article-author-meta d-flex flex-wrap align-items-center justify-content-between gap-3 pb-4 border-bottom">
+                    <div class="d-flex align-items-center gap-3">
+                        <div>
+                            <div class="author-name-text"><%= article.author || 'Editorial Staff' %></div>
+                            <% if (article.publishedAt) { %>
+                                <div class="author-date-text">
+                                    <i class="fa-regular fa-calendar me-1"></i> <%= new Date(article.publishedAt).toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) %>
+                                </div>
+                            <% } %>
+                        </div>
+                    </div>
+
+                    <% if (typeof user !== 'undefined' && user) { %>
+                        <button class="btn p-0 fav-toggle-btn" data-id="<%= article._id.toString() %>" style="background: none; border: none; outline: none; display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; transition: all 0.2s ease;">
+                            <% const isFav = user.favorites && user.favorites.map(f => f.toString()).includes(article._id.toString()); %>
+                            <i class="<%= isFav ? 'fa-solid' : 'fa-regular' %> fa-star" style="color: <%= isFav ? '#ffc107' : '#94a3b8' %>; font-size: 1.5rem; transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275), color 0.2s ease;"></i>
+                        </button>
+                    <% } %>
+                </div>
+            </div>
+
+            <div class="premium-article-media mb-5">
+                <img src="<%= article.urlToImage %>"
+                     onerror="this.onerror=null; this.src='https://placehold.co/1200x600?text=No+Image+Available';"
+                     class="img-fluid modern-hero-media"
+                     alt="<%= article.title %>">
+            </div>
+
+            <div class="premium-article-body">
+                <% if (article.description) { %>
+                    <p class="premium-lead-excerpt mb-4"><%= article.description %></p>
+                <% } %>
+
+                <div class="premium-full-content mb-5">
+                    <%= (article.content || '').replace(/<[^>]+>/g, '') %>
+                </div>
+            </div>
+
+            <div class="premium-article-footer d-flex flex-wrap gap-3 pt-4 border-top mb-5">
+                <a href="<%= article.url %>" target="_blank" class="btn btn-premium-action-dark">
+                    View Original Source <i class="fa-solid fa-arrow-up-right-from-square ms-2"></i>
+                </a>
+                <a href="/news/<%= article._id %>/analyze" class="btn btn-premium-action-blue">
+                    <i class="fa-solid fa-robot me-2"></i> Analyze with AI
+                </a>
+            </div>
+
+            <div class="comments-wrapper">
+                <% const validCommentsCount = comments ? comments.filter(c => c.user).length : 0; %>
+                <h3 class="mb-4" style="font-weight: 800; color: #0f172a;">
+                    Discussion (<%= validCommentsCount %>)
+                </h3>
+
+                <div class="comments-list mb-4">
+                    <% if (typeof comments !== 'undefined' && comments.length > 0) { %>
+                        <% comments.forEach(comment => { %>
+                            <% if (comment.user) { %>
+                                <div class="comment-box d-flex gap-3">
+                                    <img src="<%= comment.user.profileImage || '/uploads/default-avatar.png' %>" alt="<%= comment.user.username %>" class="comment-avatar">
+                                    <div class="flex-grow-1">
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <div class="comment-author"><%= comment.user.username %></div>
+                                            <div class="d-flex align-items-center gap-3">
+                                                <div class="comment-date"><%= new Date(comment.createdAt).toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' }) %></div>
+                                                <% if (typeof user !== 'undefined' && user && comment.user._id.toString() === user._id.toString()) { %>
+                                                    <form action="/news/<%= article._id %>/comment/<%= comment._id %>/delete" method="POST">
+                                                        <button type="submit" class="btn btn-link text-danger p-0">
+                                                            <i class="fa-solid fa-trash-can"></i>
+                                                        </button>
+                                                    </form>
+                                                <% } %>
+                                            </div>
+                                        </div>
+                                        <div class="comment-text"><%= comment.text %></div>
+                                    </div>
+                                </div>
+                            <% } %>
+                        <% }) %>
+                    <% } else { %>
+                        <div class="text-center text-muted py-5 mb-4">
+                            <i class="fa-regular fa-comment-dots fa-3x mb-3 opacity-25"></i>
+                            <p>No comments yet. Be the first to share your thoughts!</p>
+                        </div>
+                    <% } %>
+                </div>
+
+                <% if (typeof totalPages !== 'undefined' && totalPages > 1) { %>
+                    <nav class="d-flex justify-content-center gap-2 mb-4">
+                        <% if (currentPage > 1) { %>
+                            <a href="/news/<%= article._id %>?commentPage=<%= currentPage - 1 %>" class="btn btn-sm btn-outline-primary">Previous</a>
+                        <% } %>
+                        <span class="align-self-center">Page <%= currentPage %> of <%= totalPages %></span>
+                        <% if (currentPage < totalPages) { %>
+                            <a href="/news/<%= article._id %>?commentPage=<%= parseInt(currentPage) + 1 %>" class="btn btn-sm btn-outline-primary">Next</a>
+                        <% } %>
+                    </nav>
+                <% } %>
+
+                <% if (typeof user !== 'undefined' && user) { %>
+                    <div class="comment-input-area mt-4">
+                        <form action="/news/<%= article._id %>/comment" method="POST">
+                            <div class="d-flex gap-3">
+                                <img src="<%= user.profileImage || '/uploads/default-avatar.png' %>" alt="Your Avatar" class="comment-avatar">
+                                <div class="flex-grow-1">
+                                    <textarea name="text" class="custom-textarea mb-3" placeholder="Share your thoughts about this article..." required></textarea>
+                                    <div class="text-end">
+                                        <button type="submit" class="btn-submit-comment">
+                                            Post Comment <i class="fa-solid fa-paper-plane ms-1"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                <% } else { %>
+                    <div class="auth-prompt mb-5 mt-4">
+                        <i class="fa-regular fa-comments fa-3x mb-3 text-primary opacity-50"></i>
+                        <h5>Join the Conversation</h5>
+                        <p class="text-muted">You need to be logged in to leave a comment.</p>
+                        <a href="/auth/login" class="btn btn-primary px-4 py-2" style="border-radius: 12px; font-weight: 600;">Sign In</a>
+                        <a href="/auth/register" class="btn btn-outline-primary px-4 py-2 ms-2" style="border-radius: 12px; font-weight: 600;">Create Account</a>
+                    </div>
+                <% } %>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const favBtn = document.querySelector('.fav-toggle-btn');
+        if (!favBtn) return;
+        favBtn.addEventListener('click', async (e) => {
+            const articleId = favBtn.dataset.id;
+            const icon = favBtn.querySelector('i');
+            try {
+                const response = await fetch(`/auth/favorites/toggle/${articleId}`, { method: 'POST' });
+                const data = await response.json();
+                if (data.success) {
+                    icon.className = data.isAdded ? 'fa-solid fa-star' : 'fa-regular fa-star';
+                    icon.style.color = data.isAdded ? '#ffc107' : '#94a3b8';
+                }
+            } catch (err) { console.error(err); }
+        });
+    });
+</script>
+
+<%- include('partials/footer') %>
