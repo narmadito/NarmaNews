@@ -17,8 +17,8 @@ var authRouter = require('./routes/auth');
 
 connectDB();
 
-// syncNews();
-// setInterval(syncNews, 1000 * 60 * 60);
+syncNews();
+setInterval(syncNews, 1000 * 60 * 60);
 
 var app = express();
 
