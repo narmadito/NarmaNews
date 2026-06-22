@@ -15,7 +15,7 @@
         <% } %>
 
         <div class="avatar-wrap" onclick="document.getElementById('fileInput').click()">
-            <img src="<%= user.profileImage %>" alt="Profile">
+            <img src="<%= user.profileImage || '/uploads/default-avatar.png' %>" alt="Profile">
             <div class="upload-overlay">CHANGE</div>
         </div>
 

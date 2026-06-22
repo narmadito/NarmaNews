@@ -6,6 +6,8 @@ const path = require('path');
 const mongoose = require('mongoose');
 const User = require('../models/User');
 const Article = require('../models/Article');
+const { CloudinaryStorage } = require('multer-storage-cloudinary');
+const cloudinary = require('cloudinary').v2;
 
 const router = express.Router();
 
@@ -37,12 +39,21 @@ function calculatePaginationRange(currentPage, totalPages) {
     return rangeWithDots;
 }
 
-const storage = multer.diskStorage({
-    destination: './public/uploads/',
-    filename: (req, file, cb) => {
-        cb(null, req.session.userId + path.extname(file.originalname));
+
+cloudinary.config({
+    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+    api_key: process.env.CLOUDINARY_API_KEY,
+    api_secret: process.env.CLOUDINARY_API_SECRET
+});
+
+const storage = new CloudinaryStorage({
+    cloudinary,
+    params: {
+        folder: 'narmanews-avatars',
+        allowed_formats: ['jpg', 'jpeg', 'png', 'webp']
     }
 });
+
 const upload = multer({ storage });
 
 const transporter = nodemailer.createTransport({
@@ -267,7 +278,7 @@ router.post('/profile/upload', upload.single('avatar'), async (req, res) => {
     }
     try {
         await User.findByIdAndUpdate(req.session.userId, {
-            profileImage: '/uploads/' + req.file.filename
+            profileImage: req.file.path
         });
         res.redirect('/auth/profile');
     } catch (err) {
@@ -297,8 +308,10 @@ router.post('/profile/update', async (req, res) => {
         await User.findByIdAndUpdate(req.session.userId, { username });
         res.redirect('/auth/profile');
     } catch (err) {
-        console.error("Profile data update error:", err);
-        res.redirect('/auth/profile?error=Update+failed');
+        console.error("========== ERROR ==========");
+        console.error(err);
+        console.error("========== END ERROR ==========");
+        res.redirect('/auth/profile');
     }
 });
 
