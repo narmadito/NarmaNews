@@ -16,15 +16,9 @@ var authRouter = require('./routes/auth');
 
 
 connectDB();
-<<<<<<< HEAD
 
 syncNews();
 setInterval(syncNews, 1000 * 60 * 60);
-=======
-//
-// syncNews();
-// setInterval(syncNews, 1000 * 60 * 60);
->>>>>>> 7c30708 (Fix default avatar)
 
 var app = express();
 
