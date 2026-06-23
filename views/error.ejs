@@ -13,7 +13,9 @@
         </h1>
 
         <p class="error-description">
-            We encountered an unexpected issue while processing your request. The engineering team has been notified. Please try returning to the main feed.
+            <% if (error && error.status >= 500) { %>
+                We encountered an unexpected issue while processing your request. The engineering team has been notified. Please try returning to the main feed.
+            <% } %>
         </p>
 
         <div class="action-button-group">

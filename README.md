@@ -32,6 +32,7 @@ A modern, dynamic, and fully responsive **Live News Platform** built with Node.j
 * **Register & Login:** Secure account creation with password hashing via `bcrypt`.
 * **Email Verification (OTP):** Sends a 6-digit verification code to your email using `nodemailer`.
 * **Resend Code:** Option to request a new verification code if the previous one expired.
+* **Rate Limiting (DDoS & Brute-Force Protection):** Implemented via `express-rate-limit` to restrict users to a maximum of 60 requests per minute, protecting authentication routes from automated bots and brute-force attacks.
 * **Logout:** Securely terminates the session and clears user cookies.
 
 ### 👤 Profile Management
@@ -48,7 +49,7 @@ A modern, dynamic, and fully responsive **Live News Platform** built with Node.j
 * **Advanced Pagination:** Clean, lightning-fast page switching (`1`, `2`, `...`, `10`) for both news grids and comment sections.
 
 ### 💬 Social & AI Interaction
-* **AI Article Analysis:** One-click automated summary powered by `Gemini 2.5 Flash`. It explains long, complex news in short, simple English.
+* **AI Article Analysis:** One-click automated summary powered by `Gemini 3.1 Flash Lite`. It explains long, complex news in short, simple English.
 * **Add/Remove Favorites:** Save your favorite articles to read later or clear them from your bookmarks list with a single click.
 * **Comment System:** Share your thoughts under any article or delete your own comments whenever you want.
 
@@ -63,13 +64,15 @@ A modern, dynamic, and fully responsive **Live News Platform** built with Node.j
 | Layer / Service | Technology | What it does |
 | :--- | :--- | :--- |
 | **Backend Framework** | Node.js / Express.js | Core application server and routing |
-| **Database Engine** | MongoDB / Mongoose | Secure data storage and user/article schemas |
+| **Database Engine** | MongoDB / Mongoose | Secure data storage, user/article schemas, and native database interactions |
+| **AI Summarizer** | Google Gemini API (`gemini-3.1-flash-lite`) | Powers the **Narma AI Engine v3.1 Lite** for smart article summarization |
 | **HTTP Client** | Axios | Handles background asynchronous HTTP requests to NewsAPI |
-| **Artificial Intelligence** | Google Gemini API (`gemini-2.5-flash`) | Powers the automated article summarizer |
 | **Live Data Stream** | NewsAPI | Fetches live global articles and updates in real-time |
-| **Frontend UI** | EJS Templates / Clean CSS | Dynamic server-side UI rendering with full responsiveness |
-| **Media & Cloud Storage**| Cloudinary & Multer | Handles image uploads, formatting, and secure hosting |
-| **Mailing System** | Nodemailer (Gmail SMTP) | Sends verification codes directly to users |
+| **Media & Cloud Storage**| Cloudinary & Multer | Handles profile image uploads, automatic formatting, and secure cloud hosting |
+| **Security & Auth** | bcrypt / Express Sessions / **express-rate-limit** | Secures passwords via cryptographic hashing, manages login sessions, and **implements Rate Limiting (60 req/min) to prevent DDoS attacks and API abuse** |
+| **Mailing System** | Nodemailer (Gmail SMTP) | Sends 6-digit email verification codes (OTP) directly to users for secure registration |
+| **Task Automation** | Background Sync Timer | Automated background worker that runs periodically to fetch fresh global updates |
+| **Frontend UI** | EJS Templates / Clean CSS | Dynamic server-side UI rendering with full responsiveness across all devices |
 
 ---
 
@@ -102,11 +105,10 @@ Follow these steps to run **NarmaNews** on your local machine.
 Clone the project and install all required dependencies:
 
 ```bash
-git clone https://github.com/yourusername/narmanews.git
+git clone https://github.com/narmadito/NarmaNews.git
 cd narmanews
 npm install
 ```
-
 ---
 
 ## 2. Configure Environment Variables

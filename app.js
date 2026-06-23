@@ -6,14 +6,13 @@ var logger = require('morgan');
 var session = require('express-session');
 var syncNews = require('./services/newsSyncService');
 var connectDB = require('./db');
-
+var rateLimit = require('express-rate-limit');
 var User = require('./models/User');
 
 var indexRouter = require('./routes/index');
 var newsRouter = require('./routes/news');
 var apiRouter = require('./routes/api');
 var authRouter = require('./routes/auth');
-
 
 connectDB();
 
@@ -30,11 +29,27 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 
+app.use(express.static(path.join(__dirname, 'public')));
+
 app.use(session({
-  secret: 'narmanews-secret',
+  secret: process.env.SESSION_SECRET || 'fallback-secret-for-dev',
   resave: false,
   saveUninitialized: false
 }));
+
+const limiter = rateLimit({
+  windowMs: 1 * 60 * 1000,
+  max: 60,
+  handler: (req, res, next) => {
+    res.status(429);
+    res.render('error', {
+      message: 'You have made too many requests, please try again later.',
+      error: { status: 429 }
+    });
+  }
+});
+
+app.use(limiter);
 
 app.use(async (req, res, next) => {
   try {
@@ -49,8 +64,6 @@ app.use(async (req, res, next) => {
   }
   next();
 });
-
-app.use(express.static(path.join(__dirname, 'public')));
 
 app.use('/', indexRouter);
 app.use('/news', newsRouter);
