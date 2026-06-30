@@ -70,6 +70,10 @@ app.use('/news', newsRouter);
 app.use('/api', apiRouter);
 app.use('/auth', authRouter);
 
+app.get('/ping', (req, res) => {
+  res.status(200).send('OK');
+});
+
 app.use((req, res, next) => {
   next(createError(404));
 });

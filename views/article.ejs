@@ -80,7 +80,7 @@
                                             <div class="d-flex align-items-center gap-3">
                                                 <div class="comment-date"><%= new Date(comment.createdAt).toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' }) %></div>
                                                 <% if (typeof user !== 'undefined' && user && comment.user._id.toString() === user._id.toString()) { %>
-                                                    <form action="/news/<%= article._id %>/comment/<%= comment._id %>/delete" method="POST">
+                                                    <form action="/news/<%= article._id %>/comment/<%= comment._id %>/delete" method="POST" class="delete-comment-form">
                                                         <button type="submit" class="btn btn-link text-danger p-0">
                                                             <i class="fa-solid fa-trash-can"></i>
                                                         </button>
@@ -115,7 +115,7 @@
 
                 <% if (typeof user !== 'undefined' && user) { %>
                     <div class="comment-input-area mt-4">
-                        <form action="/news/<%= article._id %>/comment" method="POST">
+                        <form action="/news/<%= article._id %>/comment" method="POST" class="add-comment-form">
                             <div class="d-flex gap-3">
                                 <img src="<%= user.profileImage || '/uploads/default-avatar.png' %>" alt="Your Avatar" class="comment-avatar">
                                 <div class="flex-grow-1">
@@ -165,13 +165,51 @@
 
         const socket = io();
         const articleId = "<%= article._id.toString() %>";
+        const currentUserId = "<%= typeof user !== 'undefined' && user ? user._id.toString() : '' %>";
 
         socket.emit('join_article', articleId);
+
+        document.querySelector('.comments-list').addEventListener('submit', async function(e) {
+            if (e.target.classList.contains('delete-comment-form')) {
+                e.preventDefault();
+
+                const form = e.target;
+                try {
+                    await fetch(form.action, { method: 'POST' });
+                } catch (err) {
+                    console.error('Delete fetch error:', err);
+                }
+            }
+        });
+
+        const addCommentForm = document.querySelector('.add-comment-form');
+        if (addCommentForm) {
+            addCommentForm.addEventListener('submit', async function(e) {
+                e.preventDefault();
+
+                const form = e.target;
+                const textarea = form.querySelector('textarea');
+                const formData = new URLSearchParams(new FormData(form));
+
+                try {
+                    textarea.value = '';
+                    await fetch(form.action, {
+                        method: 'POST',
+                        body: formData,
+                        headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
+                    });
+                } catch (err) {
+                    console.error('Add comment fetch error:', err);
+                }
+            });
+        }
 
         socket.on('new_comment', (data) => {
             const commentsList = document.querySelector('.comments-list');
             const emptyState = commentsList.querySelector('.text-center.text-muted');
             if (emptyState) emptyState.remove();
+
+            const showDeleteButton = currentUserId && data.userId && data.userId.toString() === currentUserId;
 
             const commentHtml = `
                 <div class="comment-box d-flex gap-3" id="comment-${data.commentId || ''}" style="opacity: 0; transform: translateX(-20px); transition: all 0.4s ease;">
@@ -179,7 +217,16 @@
                     <div class="flex-grow-1">
                         <div class="d-flex justify-content-between align-items-center">
                             <div class="comment-author">${data.user.username}</div>
-                            <div class="comment-date">${new Date(data.createdAt).toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</div>
+                            <div class="d-flex align-items-center gap-3">
+                                <div class="comment-date">${new Date(data.createdAt).toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</div>
+                                ${showDeleteButton ? `
+                                    <form action="/news/${articleId}/comment/${data.commentId}/delete" method="POST" class="delete-comment-form">
+                                        <button type="submit" class="btn btn-link text-danger p-0">
+                                            <i class="fa-solid fa-trash-can"></i>
+                                        </button>
+                                    </form>
+                                ` : ''}
+                            </div>
                         </div>
                         <div class="comment-text">${data.text}</div>
                     </div>
@@ -208,12 +255,31 @@
 
         socket.on('delete_comment', (data) => {
             const commentElement = document.getElementById(`comment-${data.commentId}`);
+            const commentsList = document.querySelector('.comments-list');
+
             if (commentElement) {
                 commentElement.style.opacity = '0';
                 commentElement.style.transform = 'translateX(20px)';
                 commentElement.style.transition = 'all 0.4s ease';
+
                 setTimeout(() => {
                     commentElement.remove();
+
+                    const remainingComments = commentsList.querySelectorAll('.comment-box');
+                    if (remainingComments.length === 0) {
+                        const emptyHtml = `
+                            <div class="text-center text-muted py-5 mb-4" style="opacity: 0; transition: opacity 0.4s ease;">
+                                <i class="fa-regular fa-comment-dots fa-3x mb-3 opacity-25"></i>
+                                <p>No comments yet. Be the first to share your thoughts!</p>
+                            </div>
+                        `;
+                        commentsList.innerHTML = emptyHtml;
+
+                        setTimeout(() => {
+                            const emptyBlock = commentsList.querySelector('.text-center.text-muted');
+                            if (emptyBlock) emptyBlock.style.opacity = '1';
+                        }, 50);
+                    }
                 }, 400);
             }
 

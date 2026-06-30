@@ -47,12 +47,12 @@ router.get('/:id', async (req, res) => {
 
 router.post('/:id/comment', async (req, res) => {
     if (!req.session || !req.session.userId) {
-        return res.redirect('/auth/login');
+        return res.status(401).json({ error: 'Unauthorized' });
     }
 
     const { id } = req.params;
     if (!mongoose.Types.ObjectId.isValid(id)) {
-        return res.status(400).send('Invalid Article ID format');
+        return res.status(400).json({ error: 'Invalid ID format' });
     }
 
     try {
@@ -60,7 +60,7 @@ router.post('/:id/comment', async (req, res) => {
         const currentUser = await User.findById(req.session.userId);
 
         if (!currentUser) {
-            return res.redirect(`/news/${id}`);
+            return res.status(404).json({ error: 'User not found' });
         }
 
         const updatedArticle = await Article.findByIdAndUpdate(
@@ -82,6 +82,7 @@ router.post('/:id/comment', async (req, res) => {
         if (io && latestComment) {
             io.to(id).emit('new_comment', {
                 commentId: latestComment._id,
+                userId: req.session.userId,
                 text: text,
                 createdAt: latestComment.createdAt,
                 user: {
@@ -91,11 +92,11 @@ router.post('/:id/comment', async (req, res) => {
             });
         }
 
-        res.redirect(`/news/${id}`);
+        return res.status(200).json({ success: true });
 
     } catch (error) {
         console.error("Comment Error:", error);
-        res.redirect(`/news/${id}`);
+        res.status(500).json({ error: 'Server Error' });
     }
 });
 
@@ -127,18 +128,18 @@ router.get('/:id/analyze', async (req, res) => {
 
 router.post('/:articleId/comment/:commentId/delete', async (req, res) => {
     if (!req.session || !req.session.userId) {
-        return res.redirect('/auth/login');
+        return res.status(401).json({ error: 'Unauthorized' });
     }
 
     const { articleId, commentId } = req.params;
 
     if (!mongoose.Types.ObjectId.isValid(articleId) || !mongoose.Types.ObjectId.isValid(commentId)) {
-        return res.status(400).send('Invalid ID format');
+        return res.status(400).json({ error: 'Invalid ID format' });
     }
 
     try {
         const article = await Article.findById(articleId);
-        if (!article) return res.status(404).send('Article not found');
+        if (!article) return res.status(404).json({ error: 'Article not found' });
 
         const comment = article.comments.id(commentId);
 
@@ -150,13 +151,14 @@ router.post('/:articleId/comment/:commentId/delete', async (req, res) => {
             if (io) {
                 io.to(articleId).emit('delete_comment', { commentId });
             }
+
+            return res.status(200).json({ success: true });
         }
 
-        res.redirect(`/news/${articleId}`);
+        res.status(403).json({ error: 'Forbidden' });
     } catch (error) {
         console.error("Delete Error:", error);
-        res.redirect(`/news/${articleId}`);
+        res.status(500).json({ error: 'Server Error' });
     }
 });
-
 module.exports = router;
