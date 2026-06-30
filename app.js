@@ -6,9 +6,9 @@ const logger = require('morgan');
 const session = require('express-session');
 const rateLimit = require('express-rate-limit');
 
-const syncNews = require('./services/newsSyncService');
 const connectDB = require('./db');
 const User = require('./models/User');
+const syncNews = require('./services/newsSyncService');
 
 const indexRouter = require('./routes/index');
 const newsRouter = require('./routes/news');
@@ -17,16 +17,8 @@ const authRouter = require('./routes/auth');
 
 const app = express();
 
-async function initializeApp() {
-  try {
-    await connectDB();
-    await syncNews();
-    setInterval(syncNews, 1000 * 60 * 60);
-  } catch (error) {
-    console.error('Initialization error:', error);
-  }
-}
-initializeApp();
+const dbFunction = typeof connectDB === 'function' ? connectDB : (connectDB.connectDB || (() => Promise.resolve()));
+dbFunction().catch(err => console.error('Database connection error:', err));
 
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'ejs');
@@ -73,6 +65,14 @@ app.use('/auth', authRouter);
 app.get('/ping', (req, res) => {
   res.status(200).send('OK');
 });
+
+app.startNewsSync = function(io) {
+  syncNews(io).catch(err => console.error('Initial sync error:', err));
+
+  setInterval(() => {
+    syncNews(io).catch(err => console.error('Interval sync error:', err));
+  }, 1000 * 60 * 60);
+};
 
 app.use((req, res, next) => {
   next(createError(404));

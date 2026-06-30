@@ -23,7 +23,7 @@ function detectCategory(title, description) {
     return 'general';
 }
 
-async function syncNews() {
+async function syncNews(io) {
     try {
         const articles = await getTopHeadlines();
         if (!Array.isArray(articles)) return;
@@ -47,10 +47,6 @@ async function syncNews() {
                     source: article.source,
                     category: category
                 });
-
-
-                const app = require('../app');
-                const io = app.get('socketio');
 
                 if (io) {
                     io.emit('breaking_news', {

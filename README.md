@@ -13,6 +13,9 @@
   <a href="https://newsapi.org/" target="_blank">
     <img src="https://img.shields.io/badge/NewsAPI-FF6B6B?style=for-the-badge&logo=rss&logoColor=white" alt="NewsAPI" />
   </a>
+  <a href="https://socket.io/" target="_blank">
+    <img src="https://img.shields.io/badge/Socket.io-010101?style=for-the-badge&logo=socketdotio&logoColor=white" alt="Socket.IO" />
+  </a>
   <a href="https://aistudio.google.com/" target="_blank">
     <img src="https://img.shields.io/badge/Google%20Gemini-1A73E8?style=for-the-badge&logo=google-gemini&logoColor=white" alt="Gemini AI" />
   </a>
@@ -22,7 +25,7 @@
 </p>
 
 ### 🌟 Welcome to NarmaNews
-A modern, dynamic, and fully responsive **Live News Platform** built with Node.js, Express, and MongoDB. The app automatically fetches the latest global news, organizes them into categories, and uses Google Gemini AI to give users quick, easy-to-read smart summaries of any article.
+A modern, real-time, and fully responsive Live News Platform built with Node.js, Express, MongoDB, and Socket.io. The app automatically fetches the latest global news, organizes them into categories, and uses Google Gemini AI to provide quick, smart summaries of any article.
 
 ---
 
@@ -42,16 +45,17 @@ A modern, dynamic, and fully responsive **Live News Platform** built with Node.j
 * **Delete Account:** Option to completely and permanently wipe your account and data from the system.
 
 ### 📰 News Feed & Content Discovery
-* **Live News Fetching:** Automated backgrounds tasks fetch new updates from `NewsAPI` every hour.
+* **Live News Fetching:** Automated background tasks fetch new updates from `NewsAPI` every hour.
+* **Real-Time Breaking News (WebSockets):** Powered by `Socket.io`. When backend background tasks sync new articles, they are instantly pushed to active users' homepages with smooth animation effects and a flashing "LIVE BREAKING" badge.
 * **Categorized Content:** News are instantly sorted into smart categories (**Sports, Technology, Health, Business, Entertainment, General**).
 * **Smart Search System:** Looking for something specific? Instantly search articles by keywords using native MongoDB regex search.
 * **News Ticker:** A live scrolling ticker on the homepage showing the absolute latest breaking updates.
-* **Advanced Pagination:** Clean, lightning-fast page switching (`1`, `2`, `...`, `10`) for both news grids and comment sections.
+* **Advanced Interactive Pagination:** Clean, lightning-fast page switching (`1`, `2`, `...`, `10`) for both news grids and comment sections, featuring a smart direct-page-input node.
 
 ### 💬 Social & AI Interaction
 * **AI Article Analysis:** One-click automated summary powered by `Gemini 3.1 Flash Lite`. It explains long, complex news in short, simple English.
 * **Add/Remove Favorites:** Save your favorite articles to read later or clear them from your bookmarks list with a single click.
-* **Comment System:** Share your thoughts under any article or delete your own comments whenever you want.
+* **Real-Time Comment System (SPA Principle):** Users can write and delete comments instantly using the Fetch API and WebSockets (`Socket.io`). Comments appear on everyone's screen in real-time, and if you delete your own comment, it vanishes globally instantly. Includes smart dynamic handling that displays a "No comments yet" empty state live if all comments are cleared.
 
 ### 📱 Layout & Information
 * **100% Responsive Frontend:** Beautiful and modern UI designed perfectly for all device sizes (Mobile, Tablet, and Desktop).
@@ -65,35 +69,47 @@ A modern, dynamic, and fully responsive **Live News Platform** built with Node.j
 | :--- | :--- | :--- |
 | **Backend Framework** | Node.js / Express.js | Core application server and routing |
 | **Database Engine** | MongoDB / Mongoose | Secure data storage, user/article schemas, and native database interactions |
+| **Real-Time Engine** | Socket.io (WebSockets) | Establishes full-duplex persistent channels for live breaking news delivery and instantaneous comment streams |
 | **AI Summarizer** | Google Gemini API (`gemini-3.1-flash-lite`) | Powers the **Narma AI Engine v3.1 Lite** for smart article summarization |
-| **HTTP Client** | Axios | Handles background asynchronous HTTP requests to NewsAPI |
-| **Live Data Stream** | NewsAPI | Fetches live global articles and updates in real-time |
-| **Media & Cloud Storage**| Cloudinary & Multer | Handles profile image uploads, automatic formatting, and secure cloud hosting |
+| **Data Fetching (Client)**| Fetch API | Handles seamless, asynchronous background requests (AJAX) for submitting and deleting comments without page reloads |
+| **HTTP Client (Server)** | Axios | Handles background asynchronous HTTP requests to external services like NewsAPI |
+| **Live Data Stream** | NewsAPI | Fetches global articles and raw metadata for automated ingestion |
+| **Media & Cloud Storage**| Cloudinary & Multer | Handles profile image uploads, automatic optimization, and secure cloud hosting |
 | **Security & Auth** | bcrypt / Express Sessions / **express-rate-limit** | Secures passwords via cryptographic hashing, manages login sessions, and **implements Rate Limiting (60 req/min) to prevent DDoS attacks and API abuse** |
 | **Mailing System** | Nodemailer (Gmail SMTP) | Sends 6-digit email verification codes (OTP) directly to users for secure registration |
 | **Task Automation** | Background Sync Timer | Automated background worker that runs periodically to fetch fresh global updates |
 | **Frontend UI** | EJS Templates / Clean CSS | Dynamic server-side UI rendering with full responsiveness across all devices |
-
 ---
 
 ## 📂 Project Structure
 
 ```text
+├── bin/
+│   └── www                  # Server startup script & Socket.io initialization hub
 ├── models/
-│   ├── User.js              # User profiles, passwords, and favorite arrays
-│   └── Article.js           # News data schema with nested user comments
+│   ├── Article.js           # News data schema with nested user comments
+│   └── User.js              # User profiles, passwords, and favorite arrays
 ├── routes/
-│   ├── index.js             # Homepage, search engine, categories, and pagination
+│   ├── api.js               # REST API endpoints for fetching AI summaries via AJAX
 │   ├── auth.js              # Registration, login, profile uploads, and favorites
+│   ├── index.js             # Homepage, search engine, categories, and pagination
 │   └── news.js              # Article views, comment management, and AI triggers
 ├── services/
 │   ├── aiService.js         # Google Gemini prompt configuration
 │   ├── newsService.js       # Live NewsAPI interaction & DB storage saving
 │   └── newsSyncService.js   # Background sync timer and category auto-detector
 ├── views/                   # Dynamic EJS views (Frontend layout)
+│   ├── partials/            # Reusable UI components
+│   │   ├── footer.ejs       # Page footer with copyright, scripts, and Socket.io client
+│   │   ├── header.ejs       # Head section, metadata, and CSS asset links
+│   │   └── navbar.ejs       # Top navigation bar with categories and user profile links
+│   └── *.ejs                # Core application templates (home, article details, profile, AI analysis)
 ├── public/                  # Static assets (Custom stylesheets and images)
+├── .env.example             # Template for configuration variables (Keys, Secrets, Ports)
 ├── app.js                   # Main application initialization and middleware
-└── db.js                    # Database connection hub
+├── db.js                    # Database connection hub
+├── package.json             # Project metadata, configuration, and dependency list
+└── package-lock.json        # Automatically generated lockfile for strict dependency locking
 ```
 
 # 🚀 Local Installation Guide
@@ -194,6 +210,5 @@ http://localhost:3000
 ```
 
 and start exploring **NarmaNews**.
-
 
 
