@@ -72,7 +72,7 @@
                     <% if (typeof comments !== 'undefined' && comments.length > 0) { %>
                         <% comments.forEach(comment => { %>
                             <% if (comment.user) { %>
-                                <div class="comment-box d-flex gap-3">
+                                <div class="comment-box d-flex gap-3" id="comment-<%= comment._id %>">
                                     <img src="<%= comment.user.profileImage || '/uploads/default-avatar.png' %>" alt="<%= comment.user.username %>" class="comment-avatar">
                                     <div class="flex-grow-1">
                                         <div class="d-flex justify-content-between align-items-center">
@@ -144,21 +144,87 @@
     </div>
 </div>
 
+<script src="/socket.io/socket.io.js"></script>
 <script>
     document.addEventListener('DOMContentLoaded', () => {
         const favBtn = document.querySelector('.fav-toggle-btn');
-        if (!favBtn) return;
-        favBtn.addEventListener('click', async (e) => {
-            const articleId = favBtn.dataset.id;
-            const icon = favBtn.querySelector('i');
-            try {
-                const response = await fetch(`/auth/favorites/toggle/${articleId}`, { method: 'POST' });
-                const data = await response.json();
-                if (data.success) {
-                    icon.className = data.isAdded ? 'fa-solid fa-star' : 'fa-regular fa-star';
-                    icon.style.color = data.isAdded ? '#ffc107' : '#94a3b8';
+        if (favBtn) {
+            favBtn.addEventListener('click', async () => {
+                const articleId = favBtn.dataset.id;
+                const icon = favBtn.querySelector('i');
+                try {
+                    const response = await fetch(`/auth/favorites/toggle/${articleId}`, { method: 'POST' });
+                    const data = await response.json();
+                    if (data.success) {
+                        icon.className = data.isAdded ? 'fa-solid fa-star' : 'fa-regular fa-star';
+                        icon.style.color = data.isAdded ? '#ffc107' : '#94a3b8';
+                    }
+                } catch (err) { console.error(err); }
+            });
+        }
+
+        const socket = io();
+        const articleId = "<%= article._id.toString() %>";
+
+        socket.emit('join_article', articleId);
+
+        socket.on('new_comment', (data) => {
+            const commentsList = document.querySelector('.comments-list');
+            const emptyState = commentsList.querySelector('.text-center.text-muted');
+            if (emptyState) emptyState.remove();
+
+            const commentHtml = `
+                <div class="comment-box d-flex gap-3" id="comment-${data.commentId || ''}" style="opacity: 0; transform: translateX(-20px); transition: all 0.4s ease;">
+                    <img src="${data.user.profileImage || '/uploads/default-avatar.png'}" alt="${data.user.username}" class="comment-avatar">
+                    <div class="flex-grow-1">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div class="comment-author">${data.user.username}</div>
+                            <div class="comment-date">${new Date(data.createdAt).toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</div>
+                        </div>
+                        <div class="comment-text">${data.text}</div>
+                    </div>
+                </div>
+            `;
+
+            commentsList.insertAdjacentHTML('beforeend', commentHtml);
+
+            setTimeout(() => {
+                const lastComment = commentsList.lastElementChild;
+                if (lastComment) {
+                    lastComment.style.opacity = '1';
+                    lastComment.style.transform = 'translateX(0)';
                 }
-            } catch (err) { console.error(err); }
+            }, 50);
+
+            const titleElement = document.querySelector('.comments-wrapper h3');
+            if (titleElement) {
+                const match = titleElement.innerText.match(/\((\d+)\)/);
+                if (match) {
+                    const currentCount = parseInt(match[1]) + 1;
+                    titleElement.innerHTML = `Discussion (${currentCount})`;
+                }
+            }
+        });
+
+        socket.on('delete_comment', (data) => {
+            const commentElement = document.getElementById(`comment-${data.commentId}`);
+            if (commentElement) {
+                commentElement.style.opacity = '0';
+                commentElement.style.transform = 'translateX(20px)';
+                commentElement.style.transition = 'all 0.4s ease';
+                setTimeout(() => {
+                    commentElement.remove();
+                }, 400);
+            }
+
+            const titleElement = document.querySelector('.comments-wrapper h3');
+            if (titleElement) {
+                const match = titleElement.innerText.match(/\((\d+)\)/);
+                if (match) {
+                    const currentCount = Math.max(0, parseInt(match[1]) - 1);
+                    titleElement.innerHTML = `Discussion (${currentCount})`;
+                }
+            }
         });
     });
 </script>

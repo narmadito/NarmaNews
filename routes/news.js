@@ -57,15 +57,39 @@ router.post('/:id/comment', async (req, res) => {
 
     try {
         const { text } = req.body;
+        const currentUser = await User.findById(req.session.userId);
 
-        await Article.findByIdAndUpdate(id, {
-            $push: {
-                comments: {
-                    user: req.session.userId,
-                    text: text
+        if (!currentUser) {
+            return res.redirect(`/news/${id}`);
+        }
+
+        const updatedArticle = await Article.findByIdAndUpdate(
+            id,
+            {
+                $push: {
+                    comments: {
+                        user: req.session.userId,
+                        text: text
+                    }
                 }
-            }
-        });
+            },
+            { new: true }
+        );
+
+        const latestComment = updatedArticle.comments[updatedArticle.comments.length - 1];
+
+        const io = req.app.get('socketio');
+        if (io && latestComment) {
+            io.to(id).emit('new_comment', {
+                commentId: latestComment._id,
+                text: text,
+                createdAt: latestComment.createdAt,
+                user: {
+                    username: currentUser.username,
+                    profileImage: currentUser.profileImage
+                }
+            });
+        }
 
         res.redirect(`/news/${id}`);
 
@@ -121,6 +145,11 @@ router.post('/:articleId/comment/:commentId/delete', async (req, res) => {
         if (comment && comment.user.toString() === req.session.userId.toString()) {
             comment.deleteOne();
             await article.save();
+
+            const io = req.app.get('socketio');
+            if (io) {
+                io.to(articleId).emit('delete_comment', { commentId });
+            }
         }
 
         res.redirect(`/news/${articleId}`);

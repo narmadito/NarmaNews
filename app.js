@@ -1,25 +1,32 @@
-var createError = require('http-errors');
-var express = require('express');
-var path = require('path');
-var cookieParser = require('cookie-parser');
-var logger = require('morgan');
-var session = require('express-session');
-var syncNews = require('./services/newsSyncService');
-var connectDB = require('./db');
-var rateLimit = require('express-rate-limit');
-var User = require('./models/User');
+const createError = require('http-errors');
+const express = require('express');
+const path = require('path');
+const cookieParser = require('cookie-parser');
+const logger = require('morgan');
+const session = require('express-session');
+const rateLimit = require('express-rate-limit');
 
-var indexRouter = require('./routes/index');
-var newsRouter = require('./routes/news');
-var apiRouter = require('./routes/api');
-var authRouter = require('./routes/auth');
+const syncNews = require('./services/newsSyncService');
+const connectDB = require('./db');
+const User = require('./models/User');
 
-connectDB();
+const indexRouter = require('./routes/index');
+const newsRouter = require('./routes/news');
+const apiRouter = require('./routes/api');
+const authRouter = require('./routes/auth');
 
-syncNews();
-setInterval(syncNews, 1000 * 60 * 60);
+const app = express();
 
-var app = express();
+async function initializeApp() {
+  try {
+    await connectDB();
+    await syncNews();
+    setInterval(syncNews, 1000 * 60 * 60);
+  } catch (error) {
+    console.error('Initialization error:', error);
+  }
+}
+initializeApp();
 
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'ejs');
@@ -28,7 +35,6 @@ app.use(logger('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
-
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.use(session({
@@ -40,24 +46,18 @@ app.use(session({
 const limiter = rateLimit({
   windowMs: 1 * 60 * 1000,
   max: 60,
-  handler: (req, res, next) => {
-    res.status(429);
-    res.render('error', {
+  handler: (req, res) => {
+    res.status(429).render('error', {
       message: 'You have made too many requests, please try again later.',
       error: { status: 429 }
     });
   }
 });
-
 app.use(limiter);
 
 app.use(async (req, res, next) => {
   try {
-    if (req.session.userId) {
-      res.locals.user = await User.findById(req.session.userId);
-    } else {
-      res.locals.user = null;
-    }
+    res.locals.user = req.session.userId ? await User.findById(req.session.userId) : null;
   } catch (err) {
     console.error(err);
     res.locals.user = null;
@@ -70,16 +70,14 @@ app.use('/news', newsRouter);
 app.use('/api', apiRouter);
 app.use('/auth', authRouter);
 
-app.use(function(req, res, next) {
+app.use((req, res, next) => {
   next(createError(404));
 });
 
-app.use(function(err, req, res, next) {
+app.use((err, req, res, next) => {
   res.locals.message = err.message;
   res.locals.error = req.app.get('env') === 'development' ? err : {};
-
-  res.status(err.status || 500);
-  res.render('error');
+  res.status(err.status || 500).render('error');
 });
 
 module.exports = app;

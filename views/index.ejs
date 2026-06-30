@@ -66,15 +66,15 @@
             <div class="feed-filter-info">
                 <span class="badge bg-light text-dark border px-3 py-2 rounded-pill font-weight-bold">
                     <i class="fa-solid fa-grid-2 text-primary me-2"></i>
-                    <%= totalArticles %> Available
+                    <span id="total-articles-count"><%= totalArticles %></span> Available
                 </span>
             </div>
         </div>
 
-        <div class="row g-4">
+        <div class="row g-4" id="news-feed-container">
 
             <% if (articles.length === 0) { %>
-                <div class="col-12">
+                <div class="col-12" id="empty-state-box">
                     <div class="empty-search-state">
                         <div class="empty-search-icon mb-4">
                             <i class="fa-solid fa-magnifying-glass"></i>
@@ -207,19 +207,92 @@
 
 </div>
 
+<script src="/socket.io/socket.io.js"></script>
 <script>
+    function formatArticleTime(dateString) {
+        const date = new Date(dateString);
+        return `<i class="fa-regular fa-clock me-1 text-primary"></i> ` +
+            date.toLocaleString(undefined, {
+                month: 'short',
+                day: 'numeric',
+                hour: 'numeric',
+                minute: '2-digit'
+            });
+    }
+
     window.addEventListener('DOMContentLoaded', () => {
         document.querySelectorAll('.article-time').forEach(el => {
-            const date = new Date(el.dataset.date);
+            el.innerHTML = formatArticleTime(el.dataset.date);
+        });
 
-            el.innerHTML =
-                `<i class="fa-regular fa-clock me-1 text-primary"></i> ` +
-                date.toLocaleString(undefined, {
-                    month: 'short',
-                    day: 'numeric',
-                    hour: 'numeric',
-                    minute: '2-digit'
-                });
+        const socket = io();
+        const urlParams = new URLSearchParams(window.location.search);
+        const currentCategory = urlParams.get('category');
+        const currentSearch = urlParams.get('search')?.toLowerCase();
+
+        socket.on('breaking_news', (article) => {
+            if (currentCategory && article.category !== currentCategory) {
+                return;
+            }
+
+            if (currentSearch) {
+                const titleMatch = article.title?.toLowerCase().includes(currentSearch);
+                const descMatch = article.description?.toLowerCase().includes(currentSearch);
+                if (!titleMatch && !descMatch) {
+                    return;
+                }
+            }
+
+            const container = document.getElementById('news-feed-container');
+            const emptyState = document.getElementById('empty-state-box');
+
+            if (emptyState) {
+                emptyState.remove();
+            }
+
+            if (container) {
+                const formattedTime = formatArticleTime(article.publishedAt || new Date());
+                const newCardHtml = `
+                    <div class="col-xl-4 col-lg-4 col-md-6 col-sm-12" style="opacity: 0; transform: translateY(-30px); transition: all 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);">
+                        <div class="premium-news-card" style="border: 2px solid #ff3333; box-shadow: 0 0 15px rgba(255,51,51,0.2);">
+                            <div class="card-media-holder">
+                                <img src="${article.urlToImage || 'https://placehold.co/600x400?text=NarmaNews'}" alt="news" onerror="this.onerror=null; this.src='https://placehold.co/600x400?text=NarmaNews';">
+                                <span class="card-category-badge" style="background: #ff3333 !important;">
+                                    <i class="fa-solid fa-bolt fa-flash me-1"></i> LIVE BREAKING
+                                </span>
+                            </div>
+                            <div class="card-content-holder">
+                                <div class="card-meta-top mb-2">
+                                    <span class="article-time">${formattedTime}</span>
+                                </div>
+                                <h5 class="card-headline">
+                                    <a href="/news/${article._id}">${article.title}</a>
+                                </h5>
+                                <p class="card-excerpt">${article.description || 'No summary available for this story at the moment.'}</p>
+                                <div class="card-footer-action">
+                                    <a href="/news/${article._id}" class="read-more-link">Explore <i class="fa-solid fa-chevron-right ms-1"></i></a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+
+                container.insertAdjacentHTML('afterbegin', newCardHtml);
+
+                setTimeout(() => {
+                    const firstCard = container.firstElementChild;
+                    if (firstCard) {
+                        firstCard.style.opacity = '1';
+                        firstCard.style.transform = 'translateY(0)';
+                    }
+                }, 100);
+
+                const countBadge = document.getElementById('total-articles-count');
+                if (countBadge) {
+                    let currentCount = parseInt(countBadge.innerText) || 0;
+                    countBadge.innerText = currentCount + 1;
+                }
+            }
         });
     });
 </script>
