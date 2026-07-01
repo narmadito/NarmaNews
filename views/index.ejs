@@ -227,10 +227,14 @@
 
         const socket = io();
         const urlParams = new URLSearchParams(window.location.search);
+
+        const currentPage = <%= currentPage %>;
         const currentCategory = urlParams.get('category');
         const currentSearch = urlParams.get('search')?.toLowerCase();
 
         socket.on('breaking_news', (article) => {
+            if (currentPage !== 1) return;
+
             if (currentCategory && article.category !== currentCategory) return;
             if (currentSearch) {
                 const titleMatch = article.title?.toLowerCase().includes(currentSearch);
