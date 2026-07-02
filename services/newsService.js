@@ -38,38 +38,41 @@ async function getNewsByCategory(category) {
 }
 
 async function saveArticlesToDB(articles, defaultCategory = 'general') {
-    const savedArticles = [];
-
-    if (!Array.isArray(articles)) return savedArticles;
+    if (!Array.isArray(articles) || articles.length === 0) return [];
 
     try {
+        const titles = articles.map(a => a.title).filter(Boolean);
+
+        const existingArticles = await Article.find({ title: { $in: titles } }).select('title');
+        const existingTitlesSet = new Set(existingArticles.map(a => a.title));
+
+        const toSave = [];
         for (const article of articles) {
-            if (!article.title) continue;
+            if (!article.title || existingTitlesSet.has(article.title)) continue;
 
-            let existing = await Article.findOne({ title: article.title });
-
-            if (!existing) {
-                existing = await Article.create({
-                    title: article.title,
-                    description: article.description,
-                    content: article.content,
-                    author: article.author,
-                    url: article.url,
-                    urlToImage: article.urlToImage,
-                    publishedAt: article.publishedAt,
-                    source: article.source,
-                    category: defaultCategory
-                });
-            }
-            savedArticles.push(existing);
+            toSave.push({
+                title: article.title,
+                description: article.description,
+                content: article.content,
+                author: article.author,
+                url: article.url,
+                urlToImage: article.urlToImage,
+                publishedAt: article.publishedAt,
+                source: article.source,
+                category: defaultCategory
+            });
         }
+
+        if (toSave.length > 0) {
+            return await Article.insertMany(toSave);
+        }
+
+        return [];
     } catch (error) {
-        console.error("Error saving articles to database:", error.message);
+        console.error("Bulk save error:", error.message);
+        return [];
     }
-
-    return savedArticles;
 }
-
 module.exports = {
     getTopHeadlines,
     searchNews,

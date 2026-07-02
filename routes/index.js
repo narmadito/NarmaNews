@@ -32,40 +32,58 @@ router.get('/terms', (req, res) => {
 
 router.get('/', async (req, res) => {
   try {
-    let articles = [];
     const page = parseInt(req.query.page) || 1;
     const limit = 15;
     const categoryQuery = req.query.category || '';
+    const searchQuery = req.query.search || '';
+    const startIndex = (page - 1) * limit;
 
-    if (req.query.search) {
-      articles = await Article.find({
-        title: { $regex: req.query.search, $options: 'i' }
-      }).sort({ publishedAt: -1 });
-
-      if (articles.length === 0) {
-        const apiArticles = await searchNews(req.query.search);
-        apiArticles.sort((a, b) => new Date(b.publishedAt) - new Date(a.publishedAt));
-        articles = await saveArticlesToDB(apiArticles, 'general');
-      }
-
+    let query = {};
+    if (searchQuery) {
+      query.title = { $regex: searchQuery, $options: 'i' };
     } else if (categoryQuery) {
-      articles = await Article.find({ category: categoryQuery }).sort({ publishedAt: -1 });
-
-      if (articles.length <= 15) {
-        const apiCategory = categoryQuery === 'sports' ? 'sports' : categoryQuery;
-        const apiArticles = await getNewsByCategory(apiCategory);
-        apiArticles.sort((a, b) => new Date(b.publishedAt) - new Date(a.publishedAt));
-        await saveArticlesToDB(apiArticles, categoryQuery);
-        articles = await Article.find({ category: categoryQuery }).sort({ publishedAt: -1 });
-      }
-
-    } else {
-      articles = await Article.find().sort({ publishedAt: -1 });
+      query.category = categoryQuery;
     }
 
-    const totalPages = Math.ceil(articles.length / limit) || 1;
-    const startIndex = (page - 1) * limit;
-    const paginatedArticles = articles.slice(startIndex, startIndex + limit);
+    let totalArticles = await Article.countDocuments(query);
+
+    if (!searchQuery && categoryQuery && totalArticles <= 15) {
+      try {
+        const apiCategory = categoryQuery === 'sports' ? 'sports' : categoryQuery;
+        const apiArticles = await getNewsByCategory(apiCategory);
+        await saveArticlesToDB(apiArticles, categoryQuery);
+        totalArticles = await Article.countDocuments(query);
+      } catch (apiErr) {
+        console.error("API Fetch error inside route:", apiErr);
+      }
+    }
+
+    const paginatedArticles = await Article.find(query)
+        .sort({ publishedAt: -1 })
+        .skip(startIndex)
+        .limit(limit);
+
+    if (searchQuery && paginatedArticles.length === 0) {
+      try {
+        const apiArticles = await searchNews(searchQuery);
+        const saved = await saveArticlesToDB(apiArticles, 'general');
+        res.render('index', {
+          title: 'NarmaNews',
+          articles: saved.slice(0, limit),
+          totalArticles: saved.length,
+          currentPage: 1,
+          totalPages: Math.ceil(saved.length / limit) || 1,
+          paginationRange: [1],
+          category: '',
+          search: searchQuery
+        });
+        return;
+      } catch (searchErr) {
+        console.error("Search API error:", searchErr);
+      }
+    }
+
+    const totalPages = Math.ceil(totalArticles / limit) || 1;
 
     let delta = 2;
     let left = page - delta;
@@ -95,12 +113,12 @@ router.get('/', async (req, res) => {
     res.render('index', {
       title: 'NarmaNews',
       articles: paginatedArticles,
-      totalArticles: articles.length,
+      totalArticles: totalArticles,
       currentPage: page,
       totalPages: totalPages,
       paginationRange: paginationRange,
       category: categoryQuery,
-      search: req.query.search || ''
+      search: searchQuery
     });
 
   } catch (error) {

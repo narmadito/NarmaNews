@@ -49,9 +49,14 @@ app.use(limiter);
 
 app.use(async (req, res, next) => {
   try {
-    res.locals.user = req.session.userId ? await User.findById(req.session.userId) : null;
+    if (!req.session || !req.session.userId) {
+      res.locals.user = null;
+      return next();
+    }
+
+    res.locals.user = await User.findById(req.session.userId);
   } catch (err) {
-    console.error(err);
+    console.error("User session middleware error:", err);
     res.locals.user = null;
   }
   next();

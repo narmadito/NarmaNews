@@ -27,17 +27,24 @@
                         </div>
                     </div>
 
-                    <% if (typeof user !== 'undefined' && user) { %>
-                        <button class="btn p-0 fav-toggle-btn" data-id="<%= article._id.toString() %>" style="background: none; border: none; outline: none; display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; transition: all 0.2s ease;">
-                            <% const isFav = user.favorites && user.favorites.map(f => f.toString()).includes(article._id.toString()); %>
-                            <i class="<%= isFav ? 'fa-solid' : 'fa-regular' %> fa-star" style="color: <%= isFav ? '#ffc107' : '#94a3b8' %>; font-size: 1.5rem; transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275), color 0.2s ease;"></i>
+                    <div style="display: flex; align-items: center; gap: 4px;">
+                        <button id="copy-link-btn" class="copy-link-btn" onclick="copyArticleLink()">
+                            <i class="fa-solid fa-link"></i>
+                            <span class="copy-tooltip">Copied!</span>
                         </button>
-                    <% } %>
+
+                        <% if (typeof user !== 'undefined' && user) { %>
+                            <button class="btn p-0 fav-toggle-btn" data-id="<%= article._id.toString() %>" style="background: none; border: none; outline: none; display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; transition: all 0.2s ease;">
+                                <% const isFav = user.favorites && user.favorites.map(f => f.toString()).includes(article._id.toString()); %>
+                                <i class="<%= isFav ? 'fa-solid' : 'fa-regular' %> fa-star" style="color: <%= isFav ? '#ffc107' : '#94a3b8' %>; font-size: 1.5rem; transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275), color 0.2s ease;"></i>
+                            </button>
+                        <% } %>
+                    </div>
                 </div>
             </div>
 
             <div class="premium-article-media mb-5">
-                <img src="<%= article.urlToImage %>"
+                <img src="<%= article.urlToImage || 'https://placehold.co/1200x600?text=No+Image+Available' %>"
                      onerror="this.onerror=null; this.src='https://placehold.co/1200x600?text=No+Image+Available';"
                      class="img-fluid modern-hero-media"
                      alt="<%= article.title %>">
@@ -143,6 +150,29 @@
         </div>
     </div>
 </div>
+
+<script>
+    function copyArticleLink() {
+        const url = window.location.href;
+        const btn = document.getElementById('copy-link-btn');
+
+        navigator.clipboard.writeText(url).then(() => {
+            btn.classList.add('copied');
+            setTimeout(() => btn.classList.remove('copied'), 2000);
+        }).catch(() => {
+            const textarea = document.createElement('textarea');
+            textarea.value = url;
+            textarea.style.position = 'fixed';
+            textarea.style.opacity = '0';
+            document.body.appendChild(textarea);
+            textarea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textarea);
+            btn.classList.add('copied');
+            setTimeout(() => btn.classList.remove('copied'), 2000);
+        });
+    }
+</script>
 
 <script src="/socket.io/socket.io.js"></script>
 <script>

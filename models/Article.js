@@ -5,7 +5,8 @@ const articleSchema = new mongoose.Schema({
         type: String,
         required: true,
         unique: true,
-        trim: true
+        trim: true,
+        index: true
     },
     description: {
         type: String,
@@ -15,11 +16,15 @@ const articleSchema = new mongoose.Schema({
     author: String,
     url: String,
     urlToImage: String,
-    publishedAt: Date,
+    publishedAt: {
+        type: Date,
+        index: true
+    },
     category: {
         type: String,
         default: 'general',
-        lowercase: true
+        lowercase: true,
+        index: true
     },
     source: {
         name: String
@@ -44,5 +49,7 @@ const articleSchema = new mongoose.Schema({
     timestamps: true,
     autoIndex: true
 });
+
+articleSchema.index({ category: 1, publishedAt: -1 });
 
 module.exports = mongoose.model('Article', articleSchema);
