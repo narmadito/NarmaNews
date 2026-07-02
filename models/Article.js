@@ -29,6 +29,13 @@ const articleSchema = new mongoose.Schema({
     source: {
         name: String
     },
+    reactions: {
+        like: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
+        funny: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
+        sad: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
+        wow: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
+        angry: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }]
+    },
     comments: [{
         user: {
             type: mongoose.Schema.Types.ObjectId,

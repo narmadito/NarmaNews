@@ -60,13 +60,75 @@
                 </div>
             </div>
 
-            <div class="premium-article-footer d-flex flex-wrap gap-3 pt-4 border-top mb-5">
-                <a href="<%= article.url %>" target="_blank" class="btn btn-premium-action-dark">
-                    View Original Source <i class="fa-solid fa-arrow-up-right-from-square ms-2"></i>
-                </a>
-                <a href="/news/<%= article._id %>/analyze" class="btn btn-premium-action-blue">
-                    <i class="fa-solid fa-robot me-2"></i> Analyze with AI
-                </a>
+            <div class="premium-article-footer d-flex flex-wrap align-items-center justify-content-between gap-4 pt-4 border-top mb-5">
+
+                <div class="reactions-inline-zone">
+                    <div class="reaction-trigger-zone">
+                        <%
+                        const reacts = article.reactions || { like: [], funny: [], sad: [], wow: [], angry: [] };
+                        if (!reacts.funny) reacts.funny = [];
+                        if (!reacts.like) reacts.like = [];
+                        if (!reacts.sad) reacts.sad = [];
+                        if (!reacts.wow) reacts.wow = [];
+                        if (!reacts.angry) reacts.angry = [];
+
+                        const totalReactsCount = reacts.like.length + reacts.funny.length + reacts.sad.length + reacts.wow.length + reacts.angry.length;
+                        const uId = (typeof user !== 'undefined' && user) ? user._id.toString() : null;
+
+                        let activeType = '';
+                        let mainBtnHtml = `<i class="fa-regular fa-thumbs-up custom-react-icon"></i> <span class="main-btn-text">Reactions (<span id="main-total-counter">${totalReactsCount}</span>)</span>`;
+
+                        if (uId) {
+                            if (reacts.like.map(id => id.toString()).includes(uId)) { activeType = 'like'; mainBtnHtml = `<i class="fa-solid fa-thumbs-up text-primary custom-react-icon animate-pop"></i> <span class="main-btn-text text-primary">Reactions (<span id="main-total-counter">${totalReactsCount}</span>)</span>`; }
+                            else if (reacts.funny.map(id => id.toString()).includes(uId)) { activeType = 'funny'; mainBtnHtml = `😂 <span class="main-btn-text text-warning">Reactions (<span id="main-total-counter">${totalReactsCount}</span>)</span>`; }
+                            else if (reacts.sad.map(id => id.toString()).includes(uId)) { activeType = 'sad'; mainBtnHtml = `😢 <span class="main-btn-text text-warning">Reactions (<span id="main-total-counter">${totalReactsCount}</span>)</span>`; }
+                            else if (reacts.wow.map(id => id.toString()).includes(uId)) { activeType = 'wow'; mainBtnHtml = `😮 <span class="main-btn-text text-warning">Reactions (<span id="main-total-counter">${totalReactsCount}</span>)</span>`; }
+                            else if (reacts.angry.map(id => id.toString()).includes(uId)) { activeType = 'angry'; mainBtnHtml = `😡 <span class="main-btn-text text-danger">Reactions (<span id="main-total-counter">${totalReactsCount}</span>)</span>`; }
+                        }
+                        %>
+
+                        <button class="btn btn-light main-react-btn <%= activeType ? 'active-react' : '' %>" id="mainReactBtn" type="button">
+                            <%- mainBtnHtml %>
+                        </button>
+
+                        <div class="emojis-popup-panel" id="emojisPanel">
+                            <button class="emoji-option-btn <%= activeType === 'like' ? 'selected' : '' %>" data-type="like" title="Like">
+                                <span class="emoji-img">👍</span>
+                                <span class="emoji-counter" id="count-like"><%= reacts.like.length %></span>
+                            </button>
+
+                            <button class="emoji-option-btn <%= activeType === 'funny' ? 'selected' : '' %>" data-type="funny" title="Haha">
+                                <span class="emoji-img">😂</span>
+                                <span class="emoji-counter" id="count-funny"><%= reacts.funny.length %></span>
+                            </button>
+
+                            <button class="emoji-option-btn <%= activeType === 'sad' ? 'selected' : '' %>" data-type="sad" title="Sad">
+                                <span class="emoji-img">😢</span>
+                                <span class="emoji-counter" id="count-sad"><%= reacts.sad.length %></span>
+                            </button>
+
+                            <button class="emoji-option-btn <%= activeType === 'wow' ? 'selected' : '' %>" data-type="wow" title="Wow">
+                                <span class="emoji-img">😮</span>
+                                <span class="emoji-counter" id="count-wow"><%= reacts.wow.length %></span>
+                            </button>
+
+                            <button class="emoji-option-btn <%= activeType === 'angry' ? 'selected' : '' %>" data-type="angry" title="Angry">
+                                <span class="emoji-img">😡</span>
+                                <span class="emoji-counter" id="count-angry"><%= reacts.angry.length %></span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="action-buttons-zone d-flex gap-3">
+                    <a href="<%= article.url %>" target="_blank" class="btn btn-premium-action-dark m-0">
+                        View Original Source <i class="fa-solid fa-arrow-up-right-from-square ms-2"></i>
+                    </a>
+                    <a href="/news/<%= article._id %>/analyze" class="btn btn-premium-action-blue m-0">
+                        <i class="fa-solid fa-robot me-2"></i> Analyze with AI
+                    </a>
+                </div>
+
             </div>
 
             <div class="comments-wrapper">
@@ -198,6 +260,109 @@
         const currentUserId = "<%= typeof user !== 'undefined' && user ? user._id.toString() : '' %>";
 
         socket.emit('join_article', articleId);
+
+        const mainReactBtn = document.getElementById('mainReactBtn');
+        const emojisPanel = document.getElementById('emojisPanel');
+        const triggerZone = document.querySelector('.reaction-trigger-zone');
+
+        let enterTimeout;
+        let leaveTimeout;
+
+        async function sendReactionRequest(reactionType) {
+            try {
+                const response = await fetch(`/news/${articleId}/react`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ reactionType })
+                });
+
+                const data = await response.json();
+                if (!data.success) {
+                    if (response.status === 401) alert('Please log in to react!');
+                    return;
+                }
+
+                clearTimeout(leaveTimeout);
+                emojisPanel.classList.remove('show-panel');
+                document.querySelectorAll('.emoji-option-btn').forEach(b => b.classList.remove('selected'));
+
+                if (data.isAdded) {
+                    const activeBtn = document.querySelector(`.emoji-option-btn[data-type="${reactionType}"]`);
+                    if (activeBtn) activeBtn.classList.add('selected');
+                    mainReactBtn.classList.add('active-react');
+
+                    let textClass = 'text-warning';
+                    if (reactionType === 'like') textClass = 'text-primary';
+                    if (reactionType === 'angry') textClass = 'text-danger';
+
+                    updateMainButtonUI(reactionType, textClass);
+                } else {
+                    mainReactBtn.classList.remove('active-react');
+                    const total = document.getElementById('main-total-counter') ? document.getElementById('main-total-counter').innerText : '0';
+                    mainReactBtn.innerHTML = `<i class="fa-regular fa-thumbs-up custom-react-icon"></i> <span class="main-btn-text">Reactions (<span id="main-total-counter">${total}</span>)</span>`;
+                }
+            } catch (err) { console.error(err); }
+        }
+
+        function updateMainButtonUI(type, textClass) {
+            const total = document.getElementById('main-total-counter') ? document.getElementById('main-total-counter').innerText : '0';
+            if (type === 'like') {
+                mainReactBtn.innerHTML = `<i class="fa-solid fa-thumbs-up text-primary custom-react-icon animate-pop"></i> <span class="main-btn-text ${textClass}">Reactions (<span id="main-total-counter">${total}</span>)</span>`;
+            } else {
+                const emojiMap = { funny: '😂', sad: '😢', wow: '😮', angry: '😡' };
+                mainReactBtn.innerHTML = `${emojiMap[type]} <span class="main-btn-text ${textClass}">Reactions (<span id="main-total-counter">${total}</span>)</span>`;
+            }
+        }
+
+        if (mainReactBtn && emojisPanel && triggerZone) {
+
+            triggerZone.addEventListener('mouseenter', () => {
+                clearTimeout(leaveTimeout);
+                enterTimeout = setTimeout(() => {
+                    emojisPanel.classList.add('show-panel');
+                }, 500);
+            });
+
+            triggerZone.addEventListener('mouseleave', () => {
+                clearTimeout(enterTimeout);
+                leaveTimeout = setTimeout(() => {
+                    emojisPanel.classList.remove('show-panel');
+                }, 700);
+            });
+
+            mainReactBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                const isCurrentlyActive = mainReactBtn.classList.contains('active-react');
+
+                if (isCurrentlyActive) {
+                    const selectedOpt = document.querySelector('.emoji-option-btn.selected');
+                    const activeType = selectedOpt ? selectedOpt.dataset.type : 'like';
+                    sendReactionRequest(activeType);
+                } else {
+                    sendReactionRequest('like');
+                }
+            });
+
+            document.querySelectorAll('.emoji-option-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const reactionType = btn.dataset.type;
+                    sendReactionRequest(reactionType);
+                });
+            });
+        }
+
+        socket.on('update_reactions', (data) => {
+            if(document.getElementById('count-like')) document.getElementById('count-like').innerText = data.likeCount;
+            if(document.getElementById('count-funny')) document.getElementById('count-funny').innerText = data.funnyCount || 0;
+            if(document.getElementById('count-sad')) document.getElementById('count-sad').innerText = data.sadCount;
+            if(document.getElementById('count-wow')) document.getElementById('count-wow').innerText = data.wowCount;
+            if(document.getElementById('count-angry')) document.getElementById('count-angry').innerText = data.angryCount;
+
+            const total = data.likeCount + (data.funnyCount || 0) + data.sadCount + data.wowCount + data.angryCount;
+            const counterSpan = document.getElementById('main-total-counter');
+            if (counterSpan) counterSpan.innerText = total;
+        });
 
         document.querySelector('.comments-list').addEventListener('submit', async function(e) {
             if (e.target.classList.contains('delete-comment-form')) {

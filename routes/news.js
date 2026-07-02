@@ -45,6 +45,63 @@ router.get('/:id', async (req, res) => {
     }
 });
 
+router.post('/:id/react', async (req, res) => {
+    if (!req.session || !req.session.userId) {
+        return res.status(401).json({ success: false, message: 'Unauthorized' });
+    }
+
+    const { id } = req.params;
+    const { reactionType } = req.body;
+    const userId = req.session.userId;
+
+    const validTypes = ['like', 'funny', 'sad', 'wow', 'angry'];
+    if (!validTypes.includes(reactionType)) {
+        return res.status(400).json({ success: false, message: 'Invalid reaction type' });
+    }
+
+    try {
+        const article = await Article.findById(id);
+        if (!article) return res.status(404).json({ success: false, message: 'Article not found' });
+
+        if (!article.reactions) {
+            article.reactions = { like: [], funny: [], sad: [], wow: [], angry: [] };
+        }
+
+        let isAdded = false;
+        const currentArray = article.reactions[reactionType] || [];
+        const existingIndex = currentArray.findIndex(uid => uid.toString() === userId.toString());
+
+        validTypes.forEach(type => {
+            if (article.reactions[type]) {
+                article.reactions[type] = article.reactions[type].filter(uid => uid.toString() !== userId.toString());
+            }
+        });
+
+        if (existingIndex === -1) {
+            article.reactions[reactionType].push(userId);
+            isAdded = true;
+        }
+
+        await article.save();
+
+        const io = req.app.get('socketio');
+        if (io) {
+            io.to(id).emit('update_reactions', {
+                likeCount: article.reactions.like.length,
+                funnyCount: article.reactions.funny.length,
+                sadCount: article.reactions.sad.length,
+                wowCount: article.reactions.wow.length,
+                angryCount: article.reactions.angry.length
+            });
+        }
+
+        return res.json({ success: true, isAdded });
+    } catch (error) {
+        console.error("Reaction Error:", error);
+        res.status(500).json({ success: false, error: 'Server Error' });
+    }
+});
+
 router.post('/:id/comment', async (req, res) => {
     if (!req.session || !req.session.userId) {
         return res.status(401).json({ error: 'Unauthorized' });
@@ -161,4 +218,5 @@ router.post('/:articleId/comment/:commentId/delete', async (req, res) => {
         res.status(500).json({ error: 'Server Error' });
     }
 });
+
 module.exports = router;
