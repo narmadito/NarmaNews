@@ -87,32 +87,32 @@
                         }
                         %>
 
-                        <button class="btn btn-light main-react-btn <%= activeType ? 'active-react' : '' %>" id="mainReactBtn" type="button" style="user-select: none; -webkit-user-select: none;">
+                        <button class="btn btn-light main-react-btn <%= activeType ? 'active-react' : '' %>" id="mainReactBtn" type="button" style="user-select: none; -webkit-user-select: none; <%= !uId ? 'cursor: not-allowed;' : '' %>">
                             <%- mainBtnHtml %>
                         </button>
 
                         <div class="emojis-popup-panel" id="emojisPanel">
-                            <button class="emoji-option-btn <%= activeType === 'like' ? 'selected' : '' %>" data-type="like" title="Like">
+                            <button class="emoji-option-btn <%= activeType === 'like' ? 'selected' : '' %>" data-type="like" title="Like" style="<%= !uId ? 'cursor: not-allowed;' : '' %>">
                                 <span class="emoji-img">👍</span>
                                 <span class="emoji-counter" id="count-like"><%= reacts.like.length %></span>
                             </button>
 
-                            <button class="emoji-option-btn <%= activeType === 'funny' ? 'selected' : '' %>" data-type="funny" title="Haha">
+                            <button class="emoji-option-btn <%= activeType === 'funny' ? 'selected' : '' %>" data-type="funny" title="Haha" style="<%= !uId ? 'cursor: not-allowed;' : '' %>">
                                 <span class="emoji-img">😂</span>
                                 <span class="emoji-counter" id="count-funny"><%= reacts.funny.length %></span>
                             </button>
 
-                            <button class="emoji-option-btn <%= activeType === 'sad' ? 'selected' : '' %>" data-type="sad" title="Sad">
+                            <button class="emoji-option-btn <%= activeType === 'sad' ? 'selected' : '' %>" data-type="sad" title="Sad" style="<%= !uId ? 'cursor: not-allowed;' : '' %>">
                                 <span class="emoji-img">😢</span>
                                 <span class="emoji-counter" id="count-sad"><%= reacts.sad.length %></span>
                             </button>
 
-                            <button class="emoji-option-btn <%= activeType === 'wow' ? 'selected' : '' %>" data-type="wow" title="Wow">
+                            <button class="emoji-option-btn <%= activeType === 'wow' ? 'selected' : '' %>" data-type="wow" title="Wow" style="<%= !uId ? 'cursor: not-allowed;' : '' %>">
                                 <span class="emoji-img">😮</span>
                                 <span class="emoji-counter" id="count-wow"><%= reacts.wow.length %></span>
                             </button>
 
-                            <button class="emoji-option-btn <%= activeType === 'angry' ? 'selected' : '' %>" data-type="angry" title="Angry">
+                            <button class="emoji-option-btn <%= activeType === 'angry' ? 'selected' : '' %>" data-type="angry" title="Angry" style="<%= !uId ? 'cursor: not-allowed;' : '' %>">
                                 <span class="emoji-img">😡</span>
                                 <span class="emoji-counter" id="count-angry"><%= reacts.angry.length %></span>
                             </button>
@@ -271,6 +271,8 @@
         let isLongPress = false;
 
         async function sendReactionRequest(reactionType) {
+            if (!currentUserId) return;
+
             try {
                 const response = await fetch(`/news/${articleId}/react`, {
                     method: 'POST',
@@ -279,10 +281,7 @@
                 });
 
                 const data = await response.json();
-                if (!data.success) {
-                    if (response.status === 401) alert('Please log in to react!');
-                    return;
-                }
+                if (!data.success) return;
 
                 clearTimeout(leaveTimeout);
                 emojisPanel.classList.remove('show-panel');
@@ -354,12 +353,12 @@
             });
 
             mainReactBtn.addEventListener('click', (e) => {
-                if (isLongPress) {
-                    e.preventDefault();
-                    return;
-                }
-
                 e.preventDefault();
+
+                if (!currentUserId) return;
+
+                if (isLongPress) return;
+
                 const isCurrentlyActive = mainReactBtn.classList.contains('active-react');
 
                 if (isCurrentlyActive) {
@@ -380,12 +379,14 @@
             document.querySelectorAll('.emoji-option-btn').forEach(btn => {
                 btn.addEventListener('click', (e) => {
                     e.stopPropagation();
+                    if (!currentUserId) return;
                     const reactionType = btn.dataset.type;
                     sendReactionRequest(reactionType);
                 });
 
                 btn.addEventListener('touchend', (e) => {
                     e.stopPropagation();
+                    if (!currentUserId) return;
                     const reactionType = btn.dataset.type;
                     sendReactionRequest(reactionType);
                 });
