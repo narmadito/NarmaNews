@@ -87,7 +87,7 @@
                         }
                         %>
 
-                        <button class="btn btn-light main-react-btn <%= activeType ? 'active-react' : '' %>" id="mainReactBtn" type="button">
+                        <button class="btn btn-light main-react-btn <%= activeType ? 'active-react' : '' %>" id="mainReactBtn" type="button" style="user-select: none; -webkit-user-select: none;">
                             <%- mainBtnHtml %>
                         </button>
 
@@ -267,6 +267,8 @@
 
         let enterTimeout;
         let leaveTimeout;
+        let touchTimeout;
+        let isLongPress = false;
 
         async function sendReactionRequest(reactionType) {
             try {
@@ -330,7 +332,33 @@
                 }, 700);
             });
 
+            mainReactBtn.addEventListener('touchstart', (e) => {
+                isLongPress = false;
+                clearTimeout(touchTimeout);
+
+                touchTimeout = setTimeout(() => {
+                    isLongPress = true;
+                    emojisPanel.classList.add('show-panel');
+                }, 500);
+            }, { passive: true });
+
+            mainReactBtn.addEventListener('touchend', (e) => {
+                clearTimeout(touchTimeout);
+                if (isLongPress) {
+                    e.preventDefault();
+                }
+            });
+
+            mainReactBtn.addEventListener('contextmenu', (e) => {
+                e.preventDefault();
+            });
+
             mainReactBtn.addEventListener('click', (e) => {
+                if (isLongPress) {
+                    e.preventDefault();
+                    return;
+                }
+
                 e.preventDefault();
                 const isCurrentlyActive = mainReactBtn.classList.contains('active-react');
 
@@ -343,8 +371,20 @@
                 }
             });
 
+            document.addEventListener('click', (e) => {
+                if (!triggerZone.contains(e.target)) {
+                    emojisPanel.classList.remove('show-panel');
+                }
+            });
+
             document.querySelectorAll('.emoji-option-btn').forEach(btn => {
                 btn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const reactionType = btn.dataset.type;
+                    sendReactionRequest(reactionType);
+                });
+
+                btn.addEventListener('touchend', (e) => {
                     e.stopPropagation();
                     const reactionType = btn.dataset.type;
                     sendReactionRequest(reactionType);
@@ -436,7 +476,7 @@
                     lastComment.style.opacity = '1';
                     lastComment.style.transform = 'translateX(0)';
                 }
-            }, 50);
+            }, 500);
 
             const titleElement = document.querySelector('.comments-wrapper h3');
             if (titleElement) {
