@@ -36,11 +36,15 @@ A modern, real-time, and fully responsive Live News Platform built with Node.js,
 * **Email Verification (OTP):** Sends a 6-digit verification code to your email using `nodemailer`.
 * **Resend Code:** Option to request a new verification code if the previous one expired.
 * **Rate Limiting (DDoS & Brute-Force Protection):** Implemented via `express-rate-limit` to restrict users to a maximum of 60 requests per minute, protecting authentication routes from automated bots and brute-force attacks.
+* **User Settings & Privacy Control:** A dedicated settings dashboard where users can manage their account privacy, specifically allowing them to toggle the visibility of their email address to other users.
 * **Logout:** Securely terminates the session and clears user cookies.
 
 ### 👤 Profile Management
-* **Personal Profile Page:** View your personal info, account status, and history.
+* **Personal Profile Page:** View your personal info, account status, account creation date, and history.
+* **Public Profiles:** View other users' profiles, including their public details and activity.
+* **Shareable Profile Links:** Easily copy profile URLs to the clipboard with a quick-share link button.
 * **Update Username:** Change your display name directly from the dashboard (with custom validation).
+* **Change Password:** Securely update your account password with current password verification.
 * **Change Profile Picture:** Upload and update your avatar seamlessly using `Cloudinary` cloud storage.
 * **Delete Account:** Option to completely and permanently wipe your account and data from the system.
 

@@ -156,11 +156,11 @@
 
                 <nav aria-label="Page navigation">
 
-                    <ul class="pagination premium-pagination-nodes justify-content-center">
+                    <ul class="pagination premium-pagination-nodes justify-content-center flex-wrap">
 
                         <li class="page-node <%= currentPage <= 1 ? 'disabled' : '' %>">
-                            <a href="<%= currentPage <= 1 ? '#' : '/?page=' + (currentPage - 1) + (category ? '&category=' + category : '') + (search ? '&search=' + search : '') %>" class="node-link">
-                                <i class="fa-solid fa-arrow-left-long me-2"></i> Previous
+                            <a href="<%= currentPage <= 1 ? '#' : '/?page=' + (currentPage - 1) + (category ? '&category=' + category : '') + (search ? '&search=' + search : '') %>" class="node-link d-flex align-items-center">
+                                <i class="fa-solid fa-arrow-left-long me-md-2"></i> <span class="d-none d-md-inline-block">Previous</span>
                             </a>
                         </li>
 
@@ -190,8 +190,8 @@
                         <% }) %>
 
                         <li class="page-node <%= currentPage >= totalPages ? 'disabled' : '' %>">
-                            <a href="<%= currentPage >= totalPages ? '#' : '/?page=' + (currentPage + 1) + (category ? '&category=' + category : '') + (search ? '&search=' + search : '') %>" class="node-link">
-                                Next <i class="fa-solid fa-arrow-right-long ms-2"></i>
+                            <a href="<%= currentPage >= totalPages ? '#' : '/?page=' + (currentPage + 1) + (category ? '&category=' + category : '') + (search ? '&search=' + search : '') %>" class="node-link d-flex align-items-center">
+                                <span class="d-none d-md-inline-block">Next</span> <i class="fa-solid fa-arrow-right-long ms-md-2"></i>
                             </a>
                         </li>
 
@@ -202,6 +202,23 @@
             </div>
 
         <% } %>
+
+        <hr class="my-5" style="border: 0; height: 1px; background: linear-gradient(to right, rgba(0,0,0,0), rgba(0,0,0,0.03) 20%, rgba(0,0,0,0.03) 80%, rgba(0,0,0,0)); opacity: 0.6;">
+
+        <div class="partners-section pb-5 text-center">
+            <h5 class="text-uppercase mb-4" style="font-size: 0.7rem; letter-spacing: 4px; font-weight: 800; color: #a6a6a6;">Official Partners</h5>
+            <div class="d-flex flex-wrap justify-content-center align-items-center gap-4">
+
+                <a href="https://grandmall.ge" target="_blank" rel="noopener" style="text-decoration: none; display: inline-block; padding: 18px 45px; background: #ffffff; border-radius: 16px; box-shadow: 0 10px 35px rgba(0,0,0,0.04); transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);" onmouseover="this.style.transform='translateY(-5px)'; this.style.boxShadow='0 15px 40px rgba(0,0,0,0.08)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 10px 35px rgba(0,0,0,0.04)'">
+                    <img src="images/grandmage.png" alt="Grand Mall" class="img-fluid" style="max-height: 55px; width: auto; object-fit: contain; transition: transform 0.3s ease;" onmouseover="this.style.transform='scale(1.03)'" onmouseout="this.style.transform='scale(1)'">
+                </a>
+
+                <a href="https://ganbajeba.ge" target="_blank" rel="noopener" style="text-decoration: none; display: inline-block; padding: 18px 45px; background: #ffffff; border-radius: 16px; box-shadow: 0 10px 35px rgba(0,0,0,0.04); transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);" onmouseover="this.style.transform='translateY(-5px)'; this.style.boxShadow='0 15px 40px rgba(0,0,0,0.08)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 10px 35px rgba(0,0,0,0.04)'">
+                    <img src="images/ganbajeba.png" alt="Ganbajeba" class="img-fluid" style="max-height: 55px; width: auto; object-fit: contain; transition: transform 0.3s ease;" onmouseover="this.style.transform='scale(1.03)'" onmouseout="this.style.transform='scale(1)'">
+                </a>
+
+            </div>
+        </div>
 
     </section>
 
