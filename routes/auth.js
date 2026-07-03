@@ -115,7 +115,7 @@ router.post('/register', async (req, res) => {
 
         const verifyUrl = `${req.protocol}://${req.get('host')}/auth/verify?email=${encodeURIComponent(email)}`;
 
-        transporter.sendMail({
+        await transporter.sendMail({
             from: process.env.EMAIL_USER,
             to: email,
             subject: 'NarmaNews Email Verification',
@@ -131,7 +131,7 @@ router.post('/register', async (req, res) => {
                     <p><small>Or copy and paste this link in your browser: <br><a href="${verifyUrl}">${verifyUrl}</a></small></p>
                 </div>
             `
-        }).catch(err => console.error("Email send failed (this won't crash the app):", err));
+        });
 
         res.redirect(`/auth/verify?email=${email}`);
     } catch (err) {
@@ -194,8 +194,7 @@ router.post('/resend', async (req, res) => {
 
         const verifyUrl = `${req.protocol}://${req.get('host')}/auth/verify?email=${encodeURIComponent(email)}`;
 
-        // აქვე გავუშვი აფდეითი
-        transporter.sendMail({
+        await transporter.sendMail({
             from: process.env.EMAIL_USER,
             to: email,
             subject: 'NarmaNews New Verification Code',
@@ -211,7 +210,7 @@ router.post('/resend', async (req, res) => {
                     <p><small>Or copy and paste this link in your browser: <br><a href="${verifyUrl}">${verifyUrl}</a></small></p>
                 </div>
             `
-        }).catch(err => console.error("Resend email failed:", err));
+        });
 
         res.render('verify', { email, error: null, success: 'A new code has been sent to your email.' });
     } catch (err) {
