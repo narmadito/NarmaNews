@@ -4,6 +4,7 @@ const path = require('path');
 const cookieParser = require('cookie-parser');
 const logger = require('morgan');
 const session = require('express-session');
+const MongoStore = require('connect-mongo');
 const rateLimit = require('express-rate-limit');
 
 const connectDB = require('./db');
@@ -30,9 +31,15 @@ app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.use(session({
-  secret: process.env.SESSION_SECRET || 'fallback-secret-for-dev',
+  secret: process.env.SESSION_SECRET,
   resave: false,
-  saveUninitialized: false
+  saveUninitialized: false,
+  store: MongoStore.create({
+    mongoUrl: process.env.DB_CONNECTION_STRING
+  }),
+  cookie: {
+    secure: process.env.NODE_ENV === 'production'
+  }
 }));
 
 const limiter = rateLimit({
@@ -59,7 +66,6 @@ app.use(async (req, res, next) => {
     res.locals.user = loggedInUser;
     res.locals.currentUser = loggedInUser;
   } catch (err) {
-    console.error("User session middleware error:", err);
     res.locals.user = null;
     res.locals.currentUser = null;
   }
@@ -77,7 +83,6 @@ app.get('/ping', (req, res) => {
 
 app.startNewsSync = function(io) {
   syncNews(io).catch(err => console.error('Initial sync error:', err));
-
   setInterval(() => {
     syncNews(io).catch(err => console.error('Interval sync error:', err));
   }, 1000 * 60 * 60);
