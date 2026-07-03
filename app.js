@@ -71,6 +71,10 @@ app.use('/news', newsRouter);
 app.use('/api', apiRouter);
 app.use('/auth', authRouter);
 
+app.get('/googlea7aae4044aad9f40.html', (req, res) => {
+  res.send('google-site-verification: googlea7aae4044aad9f40.html');
+});
+
 app.get('/ping', (req, res) => {
   res.status(200).send('OK');
 });
