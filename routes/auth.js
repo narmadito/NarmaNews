@@ -39,7 +39,6 @@ function calculatePaginationRange(currentPage, totalPages) {
     return rangeWithDots;
 }
 
-
 cloudinary.config({
     cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
     api_key: process.env.CLOUDINARY_API_KEY,
@@ -256,6 +255,44 @@ router.get('/logout', (req, res) => {
     });
 });
 
+router.get('/settings', async (req, res) => {
+    if (!req.session.userId) {
+        return res.redirect('/auth/login');
+    }
+    try {
+        const user = await User.findById(req.session.userId);
+        if (!user) {
+            return res.redirect('/auth/login');
+        }
+        res.render('settings', {
+            user,
+            error: req.query.error || null,
+            success: req.query.success || null
+        });
+    } catch (err) {
+        console.error("Settings view error:", err);
+        res.redirect('/');
+    }
+});
+
+router.post('/settings/privacy', async (req, res) => {
+    if (!req.session.userId) {
+        return res.status(401).json({ success: false, message: 'Unauthorized' });
+    }
+    try {
+        const { showEmail } = req.body;
+
+        await User.findByIdAndUpdate(req.session.userId, {
+            showEmail: showEmail === true
+        });
+
+        res.json({ success: true });
+    } catch (err) {
+        console.error("Privacy update error:", err);
+        res.status(500).json({ success: false });
+    }
+});
+
 router.get('/profile', async (req, res) => {
     if (!req.session.userId) {
         return res.redirect('/auth/login');
@@ -265,9 +302,39 @@ router.get('/profile', async (req, res) => {
         if (!user) {
             return res.redirect('/auth/login');
         }
-        res.render('profile', { user, error: req.query.error || null });
+        res.render('profile', {
+            user,
+            isOwnProfile: true,
+            error: req.query.error || null,
+            success: req.query.success || null
+        });
     } catch (err) {
         console.error("Profile view fetch error:", err);
+        res.redirect('/');
+    }
+});
+
+router.get('/profile/:id', async (req, res) => {
+    try {
+        if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+            return res.redirect('/');
+        }
+
+        const targetUser = await User.findById(req.params.id);
+        if (!targetUser) {
+            return res.redirect('/');
+        }
+
+        const isOwn = req.session.userId && req.params.id === req.session.userId.toString();
+
+        res.render('profile', {
+            user: targetUser,
+            isOwnProfile: !!isOwn,
+            error: null,
+            success: null
+        });
+    } catch (err) {
+        console.error("Foreign profile view error:", err);
         res.redirect('/');
     }
 });
@@ -391,19 +458,103 @@ router.post('/profile/delete', async (req, res) => {
 
     try {
         const { confirmUsername } = req.body;
-        const user = await User.findById(req.session.userId);
+        const userId = req.session.userId;
+        const user = await User.findById(userId);
 
-        if (user.username !== confirmUsername) {
+        if (!user || user.username !== confirmUsername) {
             return res.redirect('/auth/profile?error=Username+mismatch');
         }
 
-        await User.findByIdAndDelete(req.session.userId);
-        req.session.destroy(() => {
+        if (user.profileImage && user.profileImage.includes('cloudinary.com')) {
+            try {
+                const urlParts = user.profileImage.split('/');
+                const folderAndFile = urlParts.slice(-2).join('/');
+                const publicId = folderAndFile.split('.')[0];
+
+                await cloudinary.uploader.destroy(publicId);
+            } catch (clErr) {
+                console.error("Cloudinary image delete error:", clErr);
+            }
+        }
+
+        await Article.updateMany(
+            {},
+            {
+                $pull: {
+                    'reactions.like': userId,
+                    'reactions.funny': userId,
+                    'reactions.sad': userId,
+                    'reactions.wow': userId,
+                    'reactions.angry': userId
+                }
+            }
+        );
+
+        await Article.updateMany(
+            {},
+            {
+                $pull: {
+                    comments: { user: userId }
+                }
+            }
+        );
+
+        await User.findByIdAndDelete(userId);
+
+        req.session.destroy((err) => {
+            if (err) {
+                console.error("Session destroy error during deletion:", err);
+            }
+            res.clearCookie('connect.sid');
             res.redirect('/');
         });
+
     } catch (err) {
         console.error("Account deletion error:", err);
         res.redirect('/auth/profile?error=Delete+failed');
     }
 });
+
+router.post('/profile/change-password', async (req, res) => {
+    if (!req.session.userId) return res.redirect('/auth/login');
+
+    try {
+        const { currentPassword, newPassword } = req.body;
+        const user = await User.findById(req.session.userId);
+
+        if (!user) {
+            return res.redirect('/auth/login');
+        }
+
+        const match = await bcrypt.compare(currentPassword, user.password);
+        if (!match) {
+            return res.redirect('/auth/profile?error=Incorrect+current+password.');
+        }
+
+        if (!newPassword || newPassword.length < 6 || newPassword.length > 15) {
+            return res.redirect('/auth/profile?error=New+password+must+be+between+6+and+15+characters.');
+        }
+        if (!/(?=.*[0-9])/.test(newPassword)) {
+            return res.redirect('/auth/profile?error=New+password+must+contain+at+least+one+digit.');
+        }
+        if (!/^[a-zA-Z0-9]+$/.test(newPassword)) {
+            return res.redirect('/auth/profile?error=New+password+can+only+contain+English+letters+and+numbers.');
+        }
+
+        const isSamePassword = await bcrypt.compare(newPassword, user.password);
+        if (isSamePassword) {
+            return res.redirect('/auth/profile?error=New+password+cannot+be+the+same+as+your+old+password.');
+        }
+
+        const hashedPassword = await bcrypt.hash(newPassword, 12);
+        user.password = hashedPassword;
+        await user.save();
+
+        res.redirect('/auth/profile?success=Password+updated+successfully!');
+    } catch (err) {
+        console.error("Change password error:", err);
+        res.redirect('/auth/profile?error=Something+went+wrong.+Please+try+again.');
+    }
+});
+
 module.exports = router;

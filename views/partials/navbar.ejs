@@ -74,14 +74,15 @@
                 <div class="auth-divider"></div>
 
                 <div class="premium-auth-actions">
-                    <% if (typeof user !== 'undefined' && user) { %>
+                    <% if (typeof currentUser !== 'undefined' && currentUser) { %>
 
                         <div class="dropdown custom-user-dropdown-wrapper">
                             <a class="btn btn-outline-dark dropdown-toggle modern-user-dropdown custom-user-btn" href="#" role="button" id="userMenu" data-bs-toggle="dropdown" aria-expanded="false">
-                                <i class="fa-regular fa-user me-2"></i><%= user.username %>
+                                <i class="fa-regular fa-user me-2"></i><%= currentUser.username %>
                             </a>
                             <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0 custom-dropdown-menu position-absolute" aria-labelledby="userMenu">
                                 <li><a class="dropdown-item py-2" href="/auth/profile"><i class="fa-solid fa-address-card text-muted me-2"></i>My Profile</a></li>
+                                <li><a class="dropdown-item py-2" href="/auth/settings"><i class="fa-solid fa-gear text-muted me-2"></i>Settings</a></li>
                                 <li><hr class="dropdown-divider my-1"></li>
                                 <li><a class="dropdown-item py-2 text-danger" href="/auth/logout"><i class="fa-solid fa-arrow-right-from-bracket me-2"></i>Logout</a></li>
                             </ul>

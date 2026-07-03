@@ -1,7 +1,11 @@
 <%- include('partials/header', { title: article.title }) %>
 <%- include('partials/navbar') %>
 
-<div class="container premium-article-layout mt-5">
+<div class="container premium-article-layout mt-5"
+     id="articleContainer"
+     data-article-id="<%= article._id.toString() %>"
+     data-user-id="<%= (typeof user !== 'undefined' && user) ? user._id.toString() : '' %>">
+
     <div class="row">
         <div class="col-xl-8 col-lg-9 mx-auto">
 
@@ -142,10 +146,16 @@
                         <% comments.forEach(comment => { %>
                             <% if (comment.user) { %>
                                 <div class="comment-box d-flex gap-3" id="comment-<%= comment._id %>">
-                                    <img src="<%= comment.user.profileImage || '/uploads/default-avatar.png' %>" alt="<%= comment.user.username %>" class="comment-avatar">
+                                    <a href="/auth/profile/<%= comment.user._id %>">
+                                        <img src="<%= comment.user.profileImage || '/uploads/default-avatar.png' %>" alt="<%= comment.user.username %>" class="comment-avatar" style="cursor: pointer;">
+                                    </a>
                                     <div class="flex-grow-1">
                                         <div class="d-flex justify-content-between align-items-center">
-                                            <div class="comment-author"><%= comment.user.username %></div>
+                                            <div class="comment-author">
+                                                <a href="/auth/profile/<%= comment.user._id %>" style="text-decoration: none; color: inherit; font-weight: 700;">
+                                                    <%= comment.user.username %>
+                                                </a>
+                                            </div>
                                             <div class="d-flex align-items-center gap-3">
                                                 <div class="comment-date"><%= new Date(comment.createdAt).toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' }) %></div>
                                                 <% if (typeof user !== 'undefined' && user && comment.user._id.toString() === user._id.toString()) { %>
@@ -239,13 +249,17 @@
 <script src="/socket.io/socket.io.js"></script>
 <script>
     document.addEventListener('DOMContentLoaded', () => {
+        const container = document.getElementById('articleContainer');
+        const articleId = container.dataset.articleId;
+        const currentUserId = container.dataset.userId;
+
         const favBtn = document.querySelector('.fav-toggle-btn');
         if (favBtn) {
             favBtn.addEventListener('click', async () => {
-                const articleId = favBtn.dataset.id;
+                const id = favBtn.dataset.id;
                 const icon = favBtn.querySelector('i');
                 try {
-                    const response = await fetch(`/auth/favorites/toggle/${articleId}`, { method: 'POST' });
+                    const response = await fetch(`/auth/favorites/toggle/${id}`, { method: 'POST' });
                     const data = await response.json();
                     if (data.success) {
                         icon.className = data.isAdded ? 'fa-solid fa-star' : 'fa-regular fa-star';
@@ -256,9 +270,6 @@
         }
 
         const socket = io();
-        const articleId = "<%= article._id.toString() %>";
-        const currentUserId = "<%= typeof user !== 'undefined' && user ? user._id.toString() : '' %>";
-
         socket.emit('join_article', articleId);
 
         const mainReactBtn = document.getElementById('mainReactBtn');
@@ -354,9 +365,7 @@
 
             mainReactBtn.addEventListener('click', (e) => {
                 e.preventDefault();
-
                 if (!currentUserId) return;
-
                 if (isLongPress) return;
 
                 const isCurrentlyActive = mainReactBtn.classList.contains('active-react');
@@ -408,7 +417,6 @@
         document.querySelector('.comments-list').addEventListener('submit', async function(e) {
             if (e.target.classList.contains('delete-comment-form')) {
                 e.preventDefault();
-
                 const form = e.target;
                 try {
                     await fetch(form.action, { method: 'POST' });
@@ -449,10 +457,16 @@
 
             const commentHtml = `
                 <div class="comment-box d-flex gap-3" id="comment-${data.commentId || ''}" style="opacity: 0; transform: translateX(-20px); transition: all 0.4s ease;">
-                    <img src="${data.user.profileImage || '/uploads/default-avatar.png'}" alt="${data.user.username}" class="comment-avatar">
+                    <a href="/auth/profile/${data.user._id}">
+                        <img src="${data.user.profileImage || '/uploads/default-avatar.png'}" alt="${data.user.username}" class="comment-avatar" style="cursor: pointer;">
+                    </a>
                     <div class="flex-grow-1">
                         <div class="d-flex justify-content-between align-items-center">
-                            <div class="comment-author">${data.user.username}</div>
+                            <div class="comment-author">
+                                <a href="/auth/profile/${data.user._id}" style="text-decoration: none; color: inherit; font-weight: 700;">
+                                    ${data.user.username}
+                                </a>
+                            </div>
                             <div class="d-flex align-items-center gap-3">
                                 <div class="comment-date">${new Date(data.createdAt).toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</div>
                                 ${showDeleteButton ? `

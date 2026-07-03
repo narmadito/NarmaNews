@@ -56,6 +56,8 @@ A modern, real-time, and fully responsive Live News Platform built with Node.js,
 * **AI Article Analysis:** One-click automated summary powered by `Gemini 3.1 Flash Lite`. It explains long, complex news in short, simple English.
 * **Add/Remove Favorites:** Save your favorite articles to read later or clear them from your bookmarks list with a single click.
 * **Real-Time Comment System (SPA Principle):** Users can write and delete comments instantly using the Fetch API and WebSockets (`Socket.io`). Comments appear on everyone's screen in real-time, and if you delete your own comment, it vanishes globally instantly. Includes smart dynamic handling that displays a "No comments yet" empty state live if all comments are cleared.
+* **Real-Time Reactions System (Facebook Style):** Users can leave various emoji reactions (Like, Haha, Sad, Wow, Angry) via smooth desktop hovers or mobile long-press gestures (`touchstart/touchend`). Built on the SPA principle using Fetch API and WebSockets (`Socket.io`), counters update instantly across all active users' screens without requiring a page reload. Unauthenticated guests can view real-time reaction counts globally but are restricted from interacting, ensuring a seamless and secure browsing experience.
+* **Instant Article Sharing:** A dedicated "Copy Link" button utilizing the Clipboard API, allowing users to copy the article's URL instantly to their clipboard.
 
 ### 📱 Layout & Information
 * **100% Responsive Frontend:** Beautiful and modern UI designed perfectly for all device sizes (Mobile, Tablet, and Desktop).

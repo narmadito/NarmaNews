@@ -33,7 +33,11 @@ const userSchema = new mongoose.Schema({
             type: mongoose.Schema.Types.ObjectId,
             ref: 'Article'
         }
-    ]
+    ],
+    showEmail: {
+        type: Boolean,
+        default: false
+    }
 }, {
     timestamps: true,
     autoIndex: true

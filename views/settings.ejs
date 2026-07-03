@@ -1,0 +1,67 @@
+<%- include('partials/header', { title: 'Account Settings' }) %>
+<%- include('partials/navbar') %>
+
+<div class="container narma-settings-wrapper mt-5 mb-5">
+    <div class="row">
+        <div class="col-xl-6 col-lg-8 mx-auto">
+
+            <div class="narma-settings-card">
+                <div class="narma-settings-header border-bottom pb-4 mb-4">
+                    <h2 class="narma-settings-main-title"><i class="fa-solid fa-gear me-2 text-primary"></i>Account Settings</h2>
+                    <p class="narma-settings-subtitle text-muted m-0">Manage your profile visibility, privacy choices, and account security.</p>
+                </div>
+
+                <div class="narma-settings-section mb-5">
+                    <h4 class="narma-settings-section-title mb-4">Privacy & Visibility</h4>
+
+                    <div class="narma-settings-privacy-box d-flex align-items-center justify-content-between p-3 border rounded">
+                        <div class="narma-settings-privacy-info">
+                            <h6 class="narma-settings-feature-title mb-1">Public Email Visibility</h6>
+                            <p class="narma-settings-feature-desc text-muted m-0 small">Allow other registered users to see your email address on your public profile page.</p>
+                        </div>
+                        <div class="narma-custom-switch-container">
+                            <label class="narma-premium-switch">
+                                <input type="checkbox"
+                                       id="privacyEmailToggle"
+                                        <%= user.showEmail ? 'checked' : '' %>>
+                                <span class="narma-premium-slider"></span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="narma-settings-section mb-5">
+                    <h4 class="narma-settings-section-title mb-4">Security Management</h4>
+
+                    <a href="/auth/profile" class="btn btn-outline-primary narma-settings-redirect-btn d-inline-flex align-items-center gap-2">
+                        <i class="fa-solid fa-shield-halved"></i> Change Password & Profile Details
+                    </a>
+                </div>
+
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<script>
+    document.getElementById('privacyEmailToggle').addEventListener('change', async function() {
+        const isChecked = this.checked;
+
+        try {
+            await fetch('/auth/settings/privacy', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ showEmail: isChecked })
+            });
+        } catch (error) {
+            this.checked = !isChecked;
+        }
+    });
+</script>
+
+
+
+<%- include('partials/footer') %>

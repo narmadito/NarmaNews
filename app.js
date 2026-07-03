@@ -51,13 +51,17 @@ app.use(async (req, res, next) => {
   try {
     if (!req.session || !req.session.userId) {
       res.locals.user = null;
+      res.locals.currentUser = null;
       return next();
     }
 
-    res.locals.user = await User.findById(req.session.userId);
+    const loggedInUser = await User.findById(req.session.userId);
+    res.locals.user = loggedInUser;
+    res.locals.currentUser = loggedInUser;
   } catch (err) {
     console.error("User session middleware error:", err);
     res.locals.user = null;
+    res.locals.currentUser = null;
   }
   next();
 });
