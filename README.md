@@ -54,6 +54,7 @@ A modern, real-time, and fully responsive Live News Platform built with Node.js,
 * **Categorized Content:** News are instantly sorted into smart categories (**Sports, Technology, Health, Business, Entertainment, General**).
 * **Smart Search System:** Looking for something specific? Instantly search articles by keywords using native MongoDB regex search.
 * **News Ticker:** A live scrolling ticker on the homepage showing the absolute latest breaking updates.
+* **Quick Article Sharing ("Copy Link"):** Users can instantly copy the direct URL of any article to their clipboard with a single click. A smooth toast notification confirms the link has been successfully copied, making content sharing effortless.
 * **Advanced Interactive Pagination:** Clean, lightning-fast page switching (`1`, `2`, `...`, `10`) for both news grids and comment sections, featuring a smart direct-page-input node.
 
 ### 💬 Social & AI Interaction

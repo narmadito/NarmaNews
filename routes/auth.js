@@ -264,8 +264,11 @@ router.get('/settings', async (req, res) => {
         if (!user) {
             return res.redirect('/auth/login');
         }
+
         res.render('settings', {
             user,
+            currentUser: user,
+            hideTicker: true,
             error: req.query.error || null,
             success: req.query.success || null
         });

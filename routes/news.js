@@ -143,6 +143,7 @@ router.post('/:id/comment', async (req, res) => {
                 text: text,
                 createdAt: latestComment.createdAt,
                 user: {
+                    _id: currentUser._id,
                     username: currentUser.username,
                     profileImage: currentUser.profileImage
                 }

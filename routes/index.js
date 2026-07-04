@@ -8,13 +8,8 @@ const {
   saveArticlesToDB
 } = require('../services/newsService');
 
-router.use(async (req, res, next) => {
-  try {
-    res.locals.tickerArticles = await Article.find().sort({ publishedAt: -1 }).limit(6);
-  } catch (error) {
-    console.error("Ticker articles fetch error:", error);
-    res.locals.tickerArticles = [];
-  }
+router.use((req, res, next) => {
+  res.locals.tickerArticles = [];
   next();
 });
 
@@ -44,6 +39,15 @@ router.get('/', async (req, res) => {
     } else if (categoryQuery) {
       query.category = categoryQuery;
     }
+
+    let tickerFilter = {};
+    if (categoryQuery) {
+      tickerFilter.category = categoryQuery;
+    }
+
+    const currentTickerArticles = await Article.find(tickerFilter)
+        .sort({ publishedAt: -1 })
+        .limit(6);
 
     let totalArticles = await Article.countDocuments(query);
 
@@ -75,7 +79,9 @@ router.get('/', async (req, res) => {
           totalPages: Math.ceil(saved.length / limit) || 1,
           paginationRange: [1],
           category: '',
-          search: searchQuery
+          search: searchQuery,
+          tickerArticles: currentTickerArticles,
+          currentCategory: ''
         });
         return;
       } catch (searchErr) {
@@ -118,7 +124,9 @@ router.get('/', async (req, res) => {
       totalPages: totalPages,
       paginationRange: paginationRange,
       category: categoryQuery,
-      search: searchQuery
+      search: searchQuery,
+      tickerArticles: currentTickerArticles,
+      currentCategory: categoryQuery
     });
 
   } catch (error) {
@@ -131,7 +139,9 @@ router.get('/', async (req, res) => {
       totalPages: 1,
       paginationRange: [1],
       category: '',
-      search: ''
+      search: '',
+      tickerArticles: [],
+      currentCategory: ''
     });
   }
 });

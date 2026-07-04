@@ -9,14 +9,18 @@
                 <marquee scrollamount="5" onmouseover="this.stop();" onmouseout="this.start();">
                     <% if (typeof tickerArticles !== 'undefined' && tickerArticles && tickerArticles.length > 0) { %>
                         <% tickerArticles.forEach(item => { %>
-                            <span class="ticker-text-node">
-                                <span class="ticker-dot">•</span> <%= item.title %>
-                            </span>
+                            <a href="/news/<%= item._id %>" class="ticker-link-node">
+                                <span class="ticker-text-node">
+                                    <span class="ticker-dot">•</span> <%= item.title %>
+                                </span>
+                            </a>
                         <% }) %>
                     <% } else if (typeof article !== 'undefined' && article) { %>
-                        <span class="ticker-text-node">
-                            <span class="ticker-dot">•</span> Now Reading: <%= article.title %>
-                        </span>
+                        <a href="/articles/<%= article._id %>" class="ticker-link-node">
+                            <span class="ticker-text-node">
+                                <span class="ticker-dot">•</span> Now Reading: <%= article.title %>
+                            </span>
+                        </a>
                     <% } else { %>
                         <span class="ticker-text-node">
                             <span class="ticker-dot">•</span> Welcome to NarmaNews — Stay updated with real-time independent journalism.
