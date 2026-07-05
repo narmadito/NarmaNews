@@ -68,55 +68,44 @@
 
                 <div class="reactions-inline-zone">
                     <div class="reaction-trigger-zone">
-                        <%
-                        const reacts = article.reactions || { like: [], funny: [], sad: [], wow: [], angry: [] };
-                        if (!reacts.funny) reacts.funny = [];
-                        if (!reacts.like) reacts.like = [];
-                        if (!reacts.sad) reacts.sad = [];
-                        if (!reacts.wow) reacts.wow = [];
-                        if (!reacts.angry) reacts.angry = [];
-
-                        const totalReactsCount = reacts.like.length + reacts.funny.length + reacts.sad.length + reacts.wow.length + reacts.angry.length;
-                        const uId = (typeof user !== 'undefined' && user) ? user._id.toString() : null;
-
-                        let activeType = '';
-                        let mainBtnHtml = `<i class="fa-regular fa-thumbs-up custom-react-icon"></i> <span class="main-btn-text">Reactions (<span id="main-total-counter">${totalReactsCount}</span>)</span>`;
-
-                        if (uId) {
-                            if (reacts.like.map(id => id.toString()).includes(uId)) { activeType = 'like'; mainBtnHtml = `<i class="fa-solid fa-thumbs-up text-primary custom-react-icon animate-pop"></i> <span class="main-btn-text text-primary">Reactions (<span id="main-total-counter">${totalReactsCount}</span>)</span>`; }
-                            else if (reacts.funny.map(id => id.toString()).includes(uId)) { activeType = 'funny'; mainBtnHtml = `😂 <span class="main-btn-text text-warning">Reactions (<span id="main-total-counter">${totalReactsCount}</span>)</span>`; }
-                            else if (reacts.sad.map(id => id.toString()).includes(uId)) { activeType = 'sad'; mainBtnHtml = `😢 <span class="main-btn-text text-warning">Reactions (<span id="main-total-counter">${totalReactsCount}</span>)</span>`; }
-                            else if (reacts.wow.map(id => id.toString()).includes(uId)) { activeType = 'wow'; mainBtnHtml = `😮 <span class="main-btn-text text-warning">Reactions (<span id="main-total-counter">${totalReactsCount}</span>)</span>`; }
-                            else if (reacts.angry.map(id => id.toString()).includes(uId)) { activeType = 'angry'; mainBtnHtml = `😡 <span class="main-btn-text text-danger">Reactions (<span id="main-total-counter">${totalReactsCount}</span>)</span>`; }
-                        }
-                        %>
-
-                        <button class="btn btn-light main-react-btn <%= activeType ? 'active-react' : '' %>" id="mainReactBtn" type="button" style="user-select: none; -webkit-user-select: none; <%= !uId ? 'cursor: not-allowed;' : '' %>">
-                            <%- mainBtnHtml %>
+                        <button class="btn btn-light main-react-btn <%= activeType ? 'active-react' : '' %>" id="mainReactBtn" type="button" style="user-select: none; -webkit-user-select: none; <%= !(typeof user !== 'undefined' && user) ? 'cursor: not-allowed;' : '' %>">
+                            <% if (activeType === 'like') { %>
+                                <i class="fa-solid fa-thumbs-up text-primary custom-react-icon animate-pop"></i> <span class="main-btn-text text-primary">Reactions (<span id="main-total-counter"><%= totalReactsCount %></span>)</span>
+                            <% } else if (activeType === 'funny') { %>
+                                😂 <span class="main-btn-text text-warning">Reactions (<span id="main-total-counter"><%= totalReactsCount %></span>)</span>
+                            <% } else if (activeType === 'sad') { %>
+                                😢 <span class="main-btn-text text-warning">Reactions (<span id="main-total-counter"><%= totalReactsCount %></span>)</span>
+                            <% } else if (activeType === 'wow') { %>
+                                😮 <span class="main-btn-text text-warning">Reactions (<span id="main-total-counter"><%= totalReactsCount %></span>)</span>
+                            <% } else if (activeType === 'angry') { %>
+                                😡 <span class="main-btn-text text-danger">Reactions (<span id="main-total-counter"><%= totalReactsCount %></span>)</span>
+                            <% } else { %>
+                                <i class="fa-regular fa-thumbs-up custom-react-icon"></i> <span class="main-btn-text">Reactions (<span id="main-total-counter"><%= totalReactsCount %></span>)</span>
+                            <% } %>
                         </button>
 
                         <div class="emojis-popup-panel" id="emojisPanel">
-                            <button class="emoji-option-btn <%= activeType === 'like' ? 'selected' : '' %>" data-type="like" title="Like" style="<%= !uId ? 'cursor: not-allowed;' : '' %>">
+                            <button class="emoji-option-btn <%= activeType === 'like' ? 'selected' : '' %>" data-type="like" title="Like" style="<%= !(typeof user !== 'undefined' && user) ? 'cursor: not-allowed;' : '' %>">
                                 <span class="emoji-img">👍</span>
                                 <span class="emoji-counter" id="count-like"><%= reacts.like.length %></span>
                             </button>
 
-                            <button class="emoji-option-btn <%= activeType === 'funny' ? 'selected' : '' %>" data-type="funny" title="Haha" style="<%= !uId ? 'cursor: not-allowed;' : '' %>">
+                            <button class="emoji-option-btn <%= activeType === 'funny' ? 'selected' : '' %>" data-type="funny" title="Haha" style="<%= !(typeof user !== 'undefined' && user) ? 'cursor: not-allowed;' : '' %>">
                                 <span class="emoji-img">😂</span>
                                 <span class="emoji-counter" id="count-funny"><%= reacts.funny.length %></span>
                             </button>
 
-                            <button class="emoji-option-btn <%= activeType === 'sad' ? 'selected' : '' %>" data-type="sad" title="Sad" style="<%= !uId ? 'cursor: not-allowed;' : '' %>">
+                            <button class="emoji-option-btn <%= activeType === 'sad' ? 'selected' : '' %>" data-type="sad" title="Sad" style="<%= !(typeof user !== 'undefined' && user) ? 'cursor: not-allowed;' : '' %>">
                                 <span class="emoji-img">😢</span>
                                 <span class="emoji-counter" id="count-sad"><%= reacts.sad.length %></span>
                             </button>
 
-                            <button class="emoji-option-btn <%= activeType === 'wow' ? 'selected' : '' %>" data-type="wow" title="Wow" style="<%= !uId ? 'cursor: not-allowed;' : '' %>">
+                            <button class="emoji-option-btn <%= activeType === 'wow' ? 'selected' : '' %>" data-type="wow" title="Wow" style="<%= !(typeof user !== 'undefined' && user) ? 'cursor: not-allowed;' : '' %>">
                                 <span class="emoji-img">😮</span>
                                 <span class="emoji-counter" id="count-wow"><%= reacts.wow.length %></span>
                             </button>
 
-                            <button class="emoji-option-btn <%= activeType === 'angry' ? 'selected' : '' %>" data-type="angry" title="Angry" style="<%= !uId ? 'cursor: not-allowed;' : '' %>">
+                            <button class="emoji-option-btn <%= activeType === 'angry' ? 'selected' : '' %>" data-type="angry" title="Angry" style="<%= !(typeof user !== 'undefined' && user) ? 'cursor: not-allowed;' : '' %>">
                                 <span class="emoji-img">😡</span>
                                 <span class="emoji-counter" id="count-angry"><%= reacts.angry.length %></span>
                             </button>

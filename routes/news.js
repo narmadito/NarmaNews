@@ -3,12 +3,13 @@ const router = express.Router();
 const mongoose = require('mongoose');
 const Article = require('../models/Article');
 const User = require('../models/User');
+const createError = require('http-errors');
 
-router.get('/:id', async (req, res) => {
+router.get('/:id', async (req, res, next) => {
     const { id } = req.params;
 
     if (!mongoose.Types.ObjectId.isValid(id)) {
-        return res.status(400).send('Invalid Article ID format');
+        return next(createError(400, 'Invalid Article ID format'));
     }
 
     try {
@@ -17,7 +18,9 @@ router.get('/:id', async (req, res) => {
 
         const article = await Article.findById(id).populate('comments.user');
 
-        if (!article) return res.status(404).send('Article not found');
+        if (!article) {
+            return next(createError(404, 'Article not found'));
+        }
 
         const totalComments = article.comments.length;
         const totalPages = Math.ceil(totalComments / limit);
@@ -29,6 +32,26 @@ router.get('/:id', async (req, res) => {
             user = await User.findById(req.session.userId);
         }
 
+        const reacts = article.reactions || { like: [], funny: [], sad: [], wow: [], angry: [] };
+        if (!reacts.like) reacts.like = [];
+        if (!reacts.funny) reacts.funny = [];
+        if (!reacts.sad) reacts.sad = [];
+        if (!reacts.wow) reacts.wow = [];
+        if (!reacts.angry) reacts.angry = [];
+
+        const totalReactsCount = reacts.like.length + reacts.funny.length + reacts.sad.length + reacts.wow.length + reacts.angry.length;
+
+        let activeType = '';
+        const uId = user ? user._id.toString() : null;
+
+        if (uId) {
+            if (reacts.like.map(id => id.toString()).includes(uId)) activeType = 'like';
+            else if (reacts.funny.map(id => id.toString()).includes(uId)) activeType = 'funny';
+            else if (reacts.sad.map(id => id.toString()).includes(uId)) activeType = 'sad';
+            else if (reacts.wow.map(id => id.toString()).includes(uId)) activeType = 'wow';
+            else if (reacts.angry.map(id => id.toString()).includes(uId)) activeType = 'angry';
+        }
+
         res.render('article', {
             title: article.title,
             article,
@@ -36,12 +59,14 @@ router.get('/:id', async (req, res) => {
             user,
             comments: paginatedComments,
             currentPage: page,
-            totalPages: totalPages
+            totalPages: totalPages,
+            reacts,
+            totalReactsCount,
+            activeType
         });
 
     } catch (error) {
-        console.error("Fetch article error:", error);
-        res.status(500).send('Server Error');
+        next(error);
     }
 });
 

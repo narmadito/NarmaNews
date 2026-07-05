@@ -17,8 +17,7 @@ const authRouter = require('./routes/auth');
 
 const app = express();
 
-const dbFunction = typeof connectDB === 'function' ? connectDB : (connectDB.connectDB || (() => Promise.resolve()));
-dbFunction().catch(err => console.error('Database connection error:', err));
+connectDB().catch(err => console.error('Database connection error:', err));
 
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'ejs');
