@@ -269,8 +269,129 @@
             });
         }
 
-        const socket = io();
-        socket.emit('join_article', articleId);
+        let socket;
+
+        function connectSocket() {
+            if (socket && socket.connected) return;
+
+            socket = io();
+            socket.emit('join_article', articleId);
+
+            socket.on('update_reactions', (data) => {
+                if(document.getElementById('count-like')) document.getElementById('count-like').innerText = data.likeCount;
+                if(document.getElementById('count-funny')) document.getElementById('count-funny').innerText = data.funnyCount || 0;
+                if(document.getElementById('count-sad')) document.getElementById('count-sad').innerText = data.sadCount;
+                if(document.getElementById('count-wow')) document.getElementById('count-wow').innerText = data.wowCount;
+                if(document.getElementById('count-angry')) document.getElementById('count-angry').innerText = data.angryCount;
+
+                const total = data.likeCount + (data.funnyCount || 0) + data.sadCount + data.wowCount + data.angryCount;
+                const counterSpan = document.getElementById('main-total-counter');
+                if (counterSpan) counterSpan.innerText = total;
+            });
+
+            socket.on('new_comment', (data) => {
+                const commentsList = document.querySelector('.comments-list');
+                const emptyState = commentsList.querySelector('.text-center.text-muted');
+                if (emptyState) emptyState.remove();
+
+                const showDeleteButton = currentUserId && data.userId && data.userId.toString() === currentUserId;
+
+                const commentHtml = `
+                    <div class="comment-box d-flex gap-3" id="comment-${data.commentId || ''}" style="opacity: 0; transform: translateX(-20px); transition: all 0.4s ease;">
+                        <a href="/auth/profile/${data.user._id}">
+                            <img src="${data.user.profileImage || '/uploads/default-avatar.png'}" alt="${data.user.username}" class="comment-avatar" style="cursor: pointer;">
+                        </a>
+                        <div class="flex-grow-1">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div class="comment-author">
+                                    <a href="/auth/profile/${data.user._id}" style="text-decoration: none; color: inherit; font-weight: 700;">
+                                        ${data.user.username}
+                                    </a>
+                                </div>
+                                <div class="d-flex align-items-center gap-3">
+                                    <div class="comment-date">${new Date(data.createdAt).toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</div>
+                                    ${showDeleteButton ? `
+                                        <form action="/news/${articleId}/comment/${data.commentId}/delete" method="POST" class="delete-comment-form">
+                                            <button type="submit" class="btn btn-link text-danger p-0">
+                                                <i class="fa-solid fa-trash-can"></i>
+                                            </button>
+                                        </form>
+                                    ` : ''}
+                                </div>
+                            </div>
+                            <div class="comment-text">${data.text}</div>
+                        </div>
+                    </div>
+                `;
+
+                commentsList.insertAdjacentHTML('beforeend', commentHtml);
+
+                setTimeout(() => {
+                    const lastComment = commentsList.lastElementChild;
+                    if (lastComment) {
+                        lastComment.style.opacity = '1';
+                        lastComment.style.transform = 'translateX(0)';
+                    }
+                }, 500);
+
+                const titleElement = document.querySelector('.comments-wrapper h3');
+                if (titleElement) {
+                    const match = titleElement.innerText.match(/\((\d+)\)/);
+                    if (match) {
+                        const currentCount = parseInt(match[1]) + 1;
+                        titleElement.innerHTML = `Discussion (${currentCount})`;
+                    }
+                }
+            });
+
+            socket.on('delete_comment', (data) => {
+                const commentElement = document.getElementById(`comment-${data.commentId}`);
+                const commentsList = document.querySelector('.comments-list');
+
+                if (commentElement) {
+                    commentElement.style.opacity = '0';
+                    commentElement.style.transform = 'translateX(20px)';
+                    commentElement.style.transition = 'all 0.4s ease';
+
+                    setTimeout(() => {
+                        commentElement.remove();
+
+                        const remainingComments = commentsList.querySelectorAll('.comment-box');
+                        if (remainingComments.length === 0) {
+                            const emptyHtml = `
+                                <div class="text-center text-muted py-5 mb-4" style="opacity: 0; transition: opacity 0.4s ease;">
+                                    <i class="fa-regular fa-comment-dots fa-3x mb-3 opacity-25"></i>
+                                    <p>No comments yet. Be the first to share your thoughts!</p>
+                                </div>
+                            `;
+                            commentsList.innerHTML = emptyHtml;
+
+                            setTimeout(() => {
+                                const emptyBlock = commentsList.querySelector('.text-center.text-muted');
+                                if (emptyBlock) emptyBlock.style.opacity = '1';
+                            }, 50);
+                        }
+                    }, 400);
+                }
+
+                const titleElement = document.querySelector('.comments-wrapper h3');
+                if (titleElement) {
+                    const match = titleElement.innerText.match(/\((\d+)\)/);
+                    if (match) {
+                        const currentCount = Math.max(0, parseInt(match[1]) - 1);
+                        titleElement.innerHTML = `Discussion (${currentCount})`;
+                    }
+                }
+            });
+        }
+
+        window.addEventListener('pageshow', (event) => {
+            if (event.persisted) {
+                window.location.reload();
+            } else {
+                connectSocket();
+            }
+        });
 
         const mainReactBtn = document.getElementById('mainReactBtn');
         const emojisPanel = document.getElementById('emojisPanel');
@@ -402,18 +523,6 @@
             });
         }
 
-        socket.on('update_reactions', (data) => {
-            if(document.getElementById('count-like')) document.getElementById('count-like').innerText = data.likeCount;
-            if(document.getElementById('count-funny')) document.getElementById('count-funny').innerText = data.funnyCount || 0;
-            if(document.getElementById('count-sad')) document.getElementById('count-sad').innerText = data.sadCount;
-            if(document.getElementById('count-wow')) document.getElementById('count-wow').innerText = data.wowCount;
-            if(document.getElementById('count-angry')) document.getElementById('count-angry').innerText = data.angryCount;
-
-            const total = data.likeCount + (data.funnyCount || 0) + data.sadCount + data.wowCount + data.angryCount;
-            const counterSpan = document.getElementById('main-total-counter');
-            if (counterSpan) counterSpan.innerText = total;
-        });
-
         document.querySelector('.comments-list').addEventListener('submit', async function(e) {
             if (e.target.classList.contains('delete-comment-form')) {
                 e.preventDefault();
@@ -421,7 +530,7 @@
                 try {
                     await fetch(form.action, { method: 'POST' });
                 } catch (err) {
-                    console.error('Delete fetch error:', err);
+                    console.error(err);
                 }
             }
         });
@@ -443,105 +552,10 @@
                         headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
                     });
                 } catch (err) {
-                    console.error('Add comment fetch error:', err);
+                    console.error(err);
                 }
             });
         }
-
-        socket.on('new_comment', (data) => {
-            const commentsList = document.querySelector('.comments-list');
-            const emptyState = commentsList.querySelector('.text-center.text-muted');
-            if (emptyState) emptyState.remove();
-
-            const showDeleteButton = currentUserId && data.userId && data.userId.toString() === currentUserId;
-
-            const commentHtml = `
-                <div class="comment-box d-flex gap-3" id="comment-${data.commentId || ''}" style="opacity: 0; transform: translateX(-20px); transition: all 0.4s ease;">
-                    <a href="/auth/profile/${data.user._id}">
-                        <img src="${data.user.profileImage || '/uploads/default-avatar.png'}" alt="${data.user.username}" class="comment-avatar" style="cursor: pointer;">
-                    </a>
-                    <div class="flex-grow-1">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <div class="comment-author">
-                                <a href="/auth/profile/${data.user._id}" style="text-decoration: none; color: inherit; font-weight: 700;">
-                                    ${data.user.username}
-                                </a>
-                            </div>
-                            <div class="d-flex align-items-center gap-3">
-                                <div class="comment-date">${new Date(data.createdAt).toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</div>
-                                ${showDeleteButton ? `
-                                    <form action="/news/${articleId}/comment/${data.commentId}/delete" method="POST" class="delete-comment-form">
-                                        <button type="submit" class="btn btn-link text-danger p-0">
-                                            <i class="fa-solid fa-trash-can"></i>
-                                        </button>
-                                    </form>
-                                ` : ''}
-                            </div>
-                        </div>
-                        <div class="comment-text">${data.text}</div>
-                    </div>
-                </div>
-            `;
-
-            commentsList.insertAdjacentHTML('beforeend', commentHtml);
-
-            setTimeout(() => {
-                const lastComment = commentsList.lastElementChild;
-                if (lastComment) {
-                    lastComment.style.opacity = '1';
-                    lastComment.style.transform = 'translateX(0)';
-                }
-            }, 500);
-
-            const titleElement = document.querySelector('.comments-wrapper h3');
-            if (titleElement) {
-                const match = titleElement.innerText.match(/\((\d+)\)/);
-                if (match) {
-                    const currentCount = parseInt(match[1]) + 1;
-                    titleElement.innerHTML = `Discussion (${currentCount})`;
-                }
-            }
-        });
-
-        socket.on('delete_comment', (data) => {
-            const commentElement = document.getElementById(`comment-${data.commentId}`);
-            const commentsList = document.querySelector('.comments-list');
-
-            if (commentElement) {
-                commentElement.style.opacity = '0';
-                commentElement.style.transform = 'translateX(20px)';
-                commentElement.style.transition = 'all 0.4s ease';
-
-                setTimeout(() => {
-                    commentElement.remove();
-
-                    const remainingComments = commentsList.querySelectorAll('.comment-box');
-                    if (remainingComments.length === 0) {
-                        const emptyHtml = `
-                            <div class="text-center text-muted py-5 mb-4" style="opacity: 0; transition: opacity 0.4s ease;">
-                                <i class="fa-regular fa-comment-dots fa-3x mb-3 opacity-25"></i>
-                                <p>No comments yet. Be the first to share your thoughts!</p>
-                            </div>
-                        `;
-                        commentsList.innerHTML = emptyHtml;
-
-                        setTimeout(() => {
-                            const emptyBlock = commentsList.querySelector('.text-center.text-muted');
-                            if (emptyBlock) emptyBlock.style.opacity = '1';
-                        }, 50);
-                    }
-                }, 400);
-            }
-
-            const titleElement = document.querySelector('.comments-wrapper h3');
-            if (titleElement) {
-                const match = titleElement.innerText.match(/\((\d+)\)/);
-                if (match) {
-                    const currentCount = Math.max(0, parseInt(match[1]) - 1);
-                    titleElement.innerHTML = `Discussion (${currentCount})`;
-                }
-            }
-        });
     });
 </script>
 
