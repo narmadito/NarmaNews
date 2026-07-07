@@ -128,13 +128,13 @@ Follow these steps to run **NarmaNews** on your local machine.
 Before you begin, ensure you have the following installed on your system:
 * **[Node.js](https://nodejs.org/)** (LTS version recommended)
 * **[Git](https://git-scm.com/)**
-* **[MongoDB](https://www.mongodb.com/)** (Local community server)
+* **[MongoDB](https://www.mongodb.com/try/download/community)** (Local community server)
 
 ---
 
 ## 1. Clone the Repository
 
-Clone the project and install all required dependencies:
+Open Git Bash (on Windows) or your standard Terminal (on macOS/Linux), then clone the project and install all required dependencies:
 
 ```bash
 git clone https://github.com/narmadito/NarmaNews.git
@@ -226,5 +226,4 @@ http://localhost:3000
 ```
 
 and start exploring **NarmaNews**.
-
 
