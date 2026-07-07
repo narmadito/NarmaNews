@@ -17,6 +17,8 @@ const authRouter = require('./routes/auth');
 
 const app = express();
 
+app.set('trust proxy', 1);
+
 connectDB().catch(err => console.error('Database connection error:', err));
 
 app.set('views', path.join(__dirname, 'views'));
