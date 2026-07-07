@@ -123,13 +123,22 @@ A modern, real-time, and fully responsive Live News Platform built with Node.js,
 
 Follow these steps to run **NarmaNews** on your local machine.
 
+## 📋 Prerequisites
+
+Before you begin, ensure you have the following installed on your system:
+* **[Node.js](https://nodejs.org/)** (LTS version recommended)
+* **[Git](https://git-scm.com/)**
+* **[MongoDB](https://www.mongodb.com/)** (Local community server)
+
+---
+
 ## 1. Clone the Repository
 
 Clone the project and install all required dependencies:
 
 ```bash
 git clone https://github.com/narmadito/NarmaNews.git
-cd narmanews
+cd NarmaNews
 npm install
 ```
 ---
