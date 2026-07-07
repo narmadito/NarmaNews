@@ -115,7 +115,7 @@ router.post('/register', async (req, res) => {
 
         const verifyUrl = `${req.protocol}://${req.get('host')}/auth/verify?email=${encodeURIComponent(email)}`;
 
-        await transporter.sendMail({
+        transporter.sendMail({
             from: process.env.EMAIL_USER,
             to: email,
             subject: 'NarmaNews Email Verification',
@@ -131,7 +131,7 @@ router.post('/register', async (req, res) => {
                     <p><small>Or copy and paste this link in your browser: <br><a href="${verifyUrl}">${verifyUrl}</a></small></p>
                 </div>
             `
-        });
+        }).catch(err => console.error("Background email send error:", err));
 
         res.redirect(`/auth/verify?email=${email}`);
     } catch (err) {
@@ -194,7 +194,7 @@ router.post('/resend', async (req, res) => {
 
         const verifyUrl = `${req.protocol}://${req.get('host')}/auth/verify?email=${encodeURIComponent(email)}`;
 
-        await transporter.sendMail({
+        transporter.sendMail({
             from: process.env.EMAIL_USER,
             to: email,
             subject: 'NarmaNews New Verification Code',
@@ -210,7 +210,7 @@ router.post('/resend', async (req, res) => {
                     <p><small>Or copy and paste this link in your browser: <br><a href="${verifyUrl}">${verifyUrl}</a></small></p>
                 </div>
             `
-        });
+        }).catch(err => console.error("Background resend email error:", err));
 
         res.render('verify', { email, error: null, success: 'A new code has been sent to your email.' });
     } catch (err) {
