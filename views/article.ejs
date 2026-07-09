@@ -242,6 +242,16 @@
         const articleId = container.dataset.articleId;
         const currentUserId = container.dataset.userId;
 
+        function escapeHtml(str) {
+            if (str === null || str === undefined) return '';
+            return String(str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+        }
+
         const favBtn = document.querySelector('.fav-toggle-btn');
         if (favBtn) {
             favBtn.addEventListener('click', async () => {
@@ -285,22 +295,29 @@
 
                 const showDeleteButton = currentUserId && data.userId && data.userId.toString() === currentUserId;
 
+                const safeUsername = escapeHtml(data.user.username);
+                const safeText = escapeHtml(data.text);
+                const safeAvatar = escapeHtml(data.user.profileImage || '/uploads/default-avatar.png');
+                const safeUserId = encodeURIComponent(data.user._id);
+                const safeArticleId = encodeURIComponent(articleId);
+                const safeCommentId = data.commentId ? encodeURIComponent(data.commentId) : '';
+
                 const commentHtml = `
-                    <div class="comment-box d-flex gap-3" id="comment-${data.commentId || ''}" style="opacity: 0; transform: translateX(-20px); transition: all 0.4s ease;">
-                        <a href="/auth/profile/${data.user._id}">
-                            <img src="${data.user.profileImage || '/uploads/default-avatar.png'}" alt="${data.user.username}" class="comment-avatar" style="cursor: pointer;">
+                    <div class="comment-box d-flex gap-3" id="comment-${safeCommentId}" style="opacity: 0; transform: translateX(-20px); transition: all 0.4s ease;">
+                        <a href="/auth/profile/${safeUserId}">
+                            <img src="${safeAvatar}" alt="${safeUsername}" class="comment-avatar" style="cursor: pointer;">
                         </a>
                         <div class="flex-grow-1">
                             <div class="d-flex justify-content-between align-items-center">
                                 <div class="comment-author">
-                                    <a href="/auth/profile/${data.user._id}" style="text-decoration: none; color: inherit; font-weight: 700;">
-                                        ${data.user.username}
+                                    <a href="/auth/profile/${safeUserId}" style="text-decoration: none; color: inherit; font-weight: 700;">
+                                        ${safeUsername}
                                     </a>
                                 </div>
                                 <div class="d-flex align-items-center gap-3">
                                     <div class="comment-date">${new Date(data.createdAt).toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</div>
                                     ${showDeleteButton ? `
-                                        <form action="/news/${articleId}/comment/${data.commentId}/delete" method="POST" class="delete-comment-form">
+                                        <form action="/news/${safeArticleId}/comment/${safeCommentId}/delete" method="POST" class="delete-comment-form">
                                             <button type="submit" class="btn btn-link text-danger p-0">
                                                 <i class="fa-solid fa-trash-can"></i>
                                             </button>
@@ -308,7 +325,7 @@
                                     ` : ''}
                                 </div>
                             </div>
-                            <div class="comment-text">${data.text}</div>
+                            <div class="comment-text">${safeText}</div>
                         </div>
                     </div>
                 `;
