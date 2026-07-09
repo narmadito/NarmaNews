@@ -66,39 +66,45 @@ const transporter = nodemailer.createTransport({
 router.get('/register', (req, res) => {
     res.render('register', { error: null });
 });
+const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 router.post('/register', async (req, res) => {
     try {
         const { username, email, password } = req.body;
 
-        if (!username || username.length < 6 || username.length > 10) {
-            return res.render('register', { error: 'Username must be between 6 and 10 characters.' });
+        if (!username || username.length < 6 || username.length > 20) {
+            return res.render('register', { error: 'Username must be between 6 and 20 characters.' });
         }
-        if (!/^[a-zA-Z0-9]+$/.test(username)) {
-            return res.render('register', { error: 'Username can only contain English letters and numbers.' });
+        if (!/^[a-zA-Z0-9._]+$/.test(username)) {
+            return res.render('register', { error: 'Username can only contain alphanumeric characters, dots, and underscores.' });
         }
 
-        if (!password || password.length < 6 || password.length > 15) {
-            return res.render('register', { error: 'Password must be between 6 and 15 characters.' });
+        if (!email || !emailRegex.test(email)) {
+            return res.render('register', { error: 'Please enter a valid email address.' });
+        }
+
+        if (!password || password.length < 8 || password.length > 20) {
+            return res.render('register', { error: 'Password must be between 8 and 20 characters.' });
         }
         if (!/(?=.*[0-9])/.test(password)) {
             return res.render('register', { error: 'Password must contain at least one digit.' });
         }
-        if (!/^[a-zA-Z0-9]+$/.test(password)) {
-            return res.render('register', { error: 'Password can only contain English letters and numbers.' });
+        if (!/(?=.*[!@#$%^&*(),.?":{}|<>_+\-=\[\]\\\/])/.test(password)) {
+            return res.render('register', { error: 'Password must contain at least one special character.' });
         }
 
-        const existingUsername = await User.findOne({ username });
-        if (existingUsername) {
-            return res.render('register', { error: 'Username is already taken' });
-        }
+        const existingUser = await User.findOne({ $or: [{ username }, { email }] });
 
-        const existingEmail = await User.findOne({ email });
-        if (existingEmail) {
-            if (!existingEmail.verified) {
-                return res.redirect(`/auth/verify?email=${email}`);
+        if (existingUser) {
+            if (existingUser.username === username) {
+                return res.render('register', { error: 'Username is already taken.' });
             }
-            return res.render('register', { error: 'Email already exists' });
+            if (existingUser.email === email) {
+                if (!existingUser.verified) {
+                    return res.redirect(`/auth/verify?email=${encodeURIComponent(email)}`);
+                }
+                return res.render('register', { error: 'Email already exists.' });
+            }
         }
 
         const hashedPassword = await bcrypt.hash(password, 12);
@@ -133,8 +139,12 @@ router.post('/register', async (req, res) => {
             `
         }).catch(err => console.error("Background email send error:", err));
 
-        res.redirect(`/auth/verify?email=${email}`);
+        res.redirect(`/auth/verify?email=${encodeURIComponent(email)}`);
+
     } catch (err) {
+        if (err.code === 11000) {
+            return res.render('register', { error: 'Username or Email already exists.' });
+        }
         console.error("Register error:", err);
         res.render('register', { error: 'Register error. Please try again.' });
     }
