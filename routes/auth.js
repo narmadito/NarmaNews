@@ -89,9 +89,6 @@ router.post('/register', async (req, res) => {
         if (!/(?=.*[0-9])/.test(password)) {
             return res.render('register', { error: 'Password must contain at least one digit.' });
         }
-        if (!/(?=.*[!@#$%^&*(),.?":{}|<>_+\-=\[\]\\\/])/.test(password)) {
-            return res.render('register', { error: 'Password must contain at least one special character.' });
-        }
 
         const existingUser = await User.findOne({ $or: [{ username }, { email }] });
 
