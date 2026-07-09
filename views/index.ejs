@@ -210,11 +210,11 @@
             <div class="d-flex flex-wrap justify-content-center align-items-center gap-4">
 
                 <a href="https://grandmall.ge" target="_blank" rel="noopener" style="text-decoration: none; display: inline-block; padding: 18px 45px; background: #ffffff; border-radius: 16px; box-shadow: 0 10px 35px rgba(0,0,0,0.04); transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);" onmouseover="this.style.transform='translateY(-5px)'; this.style.boxShadow='0 15px 40px rgba(0,0,0,0.08)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 10px 35px rgba(0,0,0,0.04)'">
-                    <img src="images/grandmage.png" alt="Grand Mall" class="img-fluid" style="max-height: 55px; width: auto; object-fit: contain; transition: transform 0.3s ease;" onmouseover="this.style.transform='scale(1.03)'" onmouseout="this.style.transform='scale(1)'">
+                    <img src="/images/grandmage.png" alt="Grand Mall" class="img-fluid" style="max-height: 55px; width: auto; object-fit: contain; transition: transform 0.3s ease;" onmouseover="this.style.transform='scale(1.03)'" onmouseout="this.style.transform='scale(1)'">
                 </a>
 
                 <a href="https://ganbajeba.ge" target="_blank" rel="noopener" style="text-decoration: none; display: inline-block; padding: 18px 45px; background: #ffffff; border-radius: 16px; box-shadow: 0 10px 35px rgba(0,0,0,0.04); transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);" onmouseover="this.style.transform='translateY(-5px)'; this.style.boxShadow='0 15px 40px rgba(0,0,0,0.08)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 10px 35px rgba(0,0,0,0.04)'">
-                    <img src="images/ganbajeba.png" alt="Ganbajeba" class="img-fluid" style="max-height: 55px; width: auto; object-fit: contain; transition: transform 0.3s ease;" onmouseover="this.style.transform='scale(1.03)'" onmouseout="this.style.transform='scale(1)'">
+                    <img src="/images/ganbajeba.png" alt="Ganbajeba" class="img-fluid" style="max-height: 55px; width: auto; object-fit: contain; transition: transform 0.3s ease;" onmouseover="this.style.transform='scale(1.03)'" onmouseout="this.style.transform='scale(1)'">
                 </a>
 
             </div>
@@ -235,6 +235,16 @@
                 hour: 'numeric',
                 minute: '2-digit'
             });
+    }
+
+    function escapeHtml(str) {
+        if (str === null || str === undefined) return '';
+        return String(str)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;');
     }
 
     window.addEventListener('DOMContentLoaded', () => {
@@ -268,10 +278,15 @@
                 const wrapper = document.createElement('div');
                 wrapper.className = "col-xl-4 col-lg-4 col-md-6 col-sm-12";
 
+                const safeTitle = escapeHtml(article.title);
+                const safeDesc = escapeHtml(article.description || 'No summary available for this story at the moment.');
+                const safeImg = escapeHtml(article.urlToImage || 'https://placehold.co/600x400?text=NarmaNews');
+                const safeId = encodeURIComponent(article._id);
+
                 wrapper.innerHTML = `
                     <div class="premium-news-card" style="border: 2px solid #ff3333; box-shadow: 0 0 15px rgba(255,51,51,0.2); opacity: 0; transform: translateY(-20px); transition: all 0.6s ease;">
                         <div class="card-media-holder">
-                            <img src="${article.urlToImage || 'https://placehold.co/600x400?text=NarmaNews'}" alt="news" onerror="this.onerror=null; this.src='https://placehold.co/600x400?text=NarmaNews';">
+                            <img src="${safeImg}" alt="news" onerror="this.onerror=null; this.src='https://placehold.co/600x400?text=NarmaNews';">
                             <span class="card-category-badge" style="background: #ff3333 !important;">
                                 <i class="fa-solid fa-bolt fa-flash me-1"></i> LIVE BREAKING
                             </span>
@@ -281,11 +296,11 @@
                                 <span class="article-time">${formattedTime}</span>
                             </div>
                             <h5 class="card-headline">
-                                <a href="/news/${article._id}">${article.title}</a>
+                                <a href="/news/${safeId}">${safeTitle}</a>
                             </h5>
-                            <p class="card-excerpt">${article.description || 'No summary available for this story at the moment.'}</p>
+                            <p class="card-excerpt">${safeDesc}</p>
                             <div class="card-footer-action">
-                                <a href="/news/${article._id}" class="read-more-link">Explore <i class="fa-solid fa-chevron-right ms-1"></i></a>
+                                <a href="/news/${safeId}" class="read-more-link">Explore <i class="fa-solid fa-chevron-right ms-1"></i></a>
                             </div>
                         </div>
                     </div>
