@@ -79,12 +79,21 @@ router.post('/:id/react', async (req, res) => {
     const { reactionType } = req.body;
     const userId = req.session.userId;
 
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+        return res.status(400).json({ success: false, message: 'Invalid Article ID format' });
+    }
+
     const validTypes = ['like', 'funny', 'sad', 'wow', 'angry'];
     if (!validTypes.includes(reactionType)) {
         return res.status(400).json({ success: false, message: 'Invalid reaction type' });
     }
 
     try {
+        const currentUser = await User.findById(userId);
+        if (!currentUser) {
+            return res.status(401).json({ success: false, message: 'Unauthorized' });
+        }
+
         const article = await Article.findById(id);
         if (!article) return res.status(404).json({ success: false, message: 'Article not found' });
 
@@ -138,7 +147,16 @@ router.post('/:id/comment', async (req, res) => {
     }
 
     try {
-        const { text } = req.body;
+        const rawText = typeof req.body.text === 'string' ? req.body.text : '';
+        const text = rawText.trim();
+
+        if (!text) {
+            return res.status(400).json({ error: 'Comment text cannot be empty' });
+        }
+        if (text.length > 2000) {
+            return res.status(400).json({ error: 'Comment text is too long (max 2000 characters)' });
+        }
+
         const currentUser = await User.findById(req.session.userId);
 
         if (!currentUser) {
@@ -157,6 +175,10 @@ router.post('/:id/comment', async (req, res) => {
             },
             { new: true }
         );
+
+        if (!updatedArticle) {
+            return res.status(404).json({ error: 'Article not found' });
+        }
 
         const latestComment = updatedArticle.comments[updatedArticle.comments.length - 1];
 
@@ -221,6 +243,11 @@ router.post('/:articleId/comment/:commentId/delete', async (req, res) => {
     }
 
     try {
+        const currentUser = await User.findById(req.session.userId);
+        if (!currentUser) {
+            return res.status(401).json({ error: 'Unauthorized' });
+        }
+
         const article = await Article.findById(articleId);
         if (!article) return res.status(404).json({ error: 'Article not found' });
 
