@@ -542,14 +542,12 @@ router.post('/profile/change-password', async (req, res) => {
             return res.redirect('/auth/profile?error=Incorrect+current+password.');
         }
 
-        if (!newPassword || newPassword.length < 6 || newPassword.length > 15) {
-            return res.redirect('/auth/profile?error=New+password+must+be+between+6+and+15+characters.');
+        if (!newPassword || newPassword.length < 8 || newPassword.length > 20) {
+            return res.redirect('/auth/profile?error=Password+must+be+between+8+and+20+characters.');
         }
+
         if (!/(?=.*[0-9])/.test(newPassword)) {
-            return res.redirect('/auth/profile?error=New+password+must+contain+at+least+one+digit.');
-        }
-        if (!/^[a-zA-Z0-9]+$/.test(newPassword)) {
-            return res.redirect('/auth/profile?error=New+password+can+only+contain+English+letters+and+numbers.');
+            return res.redirect('/auth/profile?error=Password+must+contain+at+least+one+digit.');
         }
 
         const isSamePassword = await bcrypt.compare(newPassword, user.password);
