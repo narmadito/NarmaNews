@@ -370,11 +370,12 @@ router.post('/profile/update', async (req, res) => {
     try {
         const { username } = req.body;
 
-        if (!username || username.length < 6 || username.length > 10) {
-            return res.redirect('/auth/profile?error=Username+must+be+between+6+and+10+characters.');
+        if (!username || username.length < 6 || username.length > 20) {
+            return res.redirect('/auth/profile?error=Username+must+be+between+6+and+20+characters.');
         }
-        if (!/^[a-zA-Z0-9]+$/.test(username)) {
-            return res.redirect('/auth/profile?error=Username+can+only+contain+English+letters+and+numbers.');
+
+        if (!/^[a-zA-Z0-9._]+$/.test(username)) {
+            return res.redirect('/auth/profile?error=Username+can+only+contain+alphanumeric+characters,+dots,+and+underscores.');
         }
 
         const existingUsername = await User.findOne({ username, _id: { $ne: req.session.userId } });
