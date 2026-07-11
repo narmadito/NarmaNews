@@ -10,10 +10,7 @@
     "@google/genai": "^2.8.0",
     "axios": "^1.18.0",
     "bcrypt": "^6.0.0",
-    "bcryptjs": "^3.0.3",
-    "cheerio": "^1.2.0",
     "cloudinary": "^1.41.3",
-    "connect-mongo": "^4.6.0",
     "cookie-parser": "~1.4.4",
     "debug": "~2.6.9",
     "dotenv": "^17.4.2",
@@ -27,10 +24,6 @@
     "multer": "^2.2.0",
     "multer-storage-cloudinary": "^4.0.0",
     "nodemailer": "^9.0.1",
-    "passport": "^0.7.0",
-    "passport-local": "^1.0.0",
-    "resend": "^6.16.0",
-    "rss-parser": "^3.13.0",
     "socket.io": "^4.8.3"
   },
   "devDependencies": {
